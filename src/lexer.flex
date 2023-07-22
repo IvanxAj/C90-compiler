@@ -19,9 +19,15 @@ L               [a-zA-Z_]
 
 "("             { return T_LBRACKET; }
 ")"             { return T_RBRACKET; }
-
 "{"             { return T_LCBRACKET; }
 "}"             { return T_RCBRACKET; }
+
+"*"             { return T_TIMES; }
+"+"             { return T_PLUS; }
+"/"             { return T_DIVIDE; }
+"-"             { return T_MINUS; }
+
+"="             { return T_ASSIGNMENT; }
 
 ";"             { return T_SEMICOLON; }
 

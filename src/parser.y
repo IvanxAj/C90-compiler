@@ -19,49 +19,106 @@
   std::string *string;
 }
 
-%token T_TIMES T_DIVIDE T_PLUS T_MINUS T_EXPONENT
+%token T_TIMES T_DIVIDE T_PLUS T_MINUS
 %token T_LBRACKET T_RBRACKET
-%token T_LOG T_EXP T_SQRT
+%token T_LCBRACKET T_RCBRACKET
+%token T_SEMICOLON T_ASSIGNMENT
 %token T_NUMBER T_VARIABLE
+%token T_INT
+%token T_RETURN
+%token IDENTIFIER INT_LITERALS
 
-%type <expr> EXPR TERM UNARY FACTOR
-%type <number> T_NUMBER
-%type <string> T_VARIABLE T_LOG T_EXP T_SQRT
+%type <expr>   declarator direct_declarator declaration_specifier type_specifier primary_expression compound_statement
+%type <expr>   statement expression_statement jump_statement expression assignment_expression unary_expression postfix_expression
+%type <number> INT_LITERALS
+%type <string> IDENTFIER
 
 %start ROOT
 
 %%
 
-ROOT : EXPR { g_root = $1; }
 
-/* TODO-3 : Add support for (x + 6) and (10 - y). You'll need to add production rules, and create an AddOperator or
-            SubOperator. */
-EXPR : TERM               { $$ = $1; }
-     | EXPR T_PLUS TERM   { $$ = new AddOperator( $1, $3 ); }
-     | EXPR T_MINUS TERM  { $$ = new SubOperator( $1, $3 ); }
-     ;
+ROOT : function_definition { g_root = $1; }
 
-/* TODO-4 : Add support (x * 6) and (z / 11). */
-TERM : UNARY          { $$ = $1; }
-      | TERM T_TIMES UNARY { $$ = new MulOperator( $1, $3 ); }
-      | TERM T_DIVIDE UNARY { $$ = new DivOperator( $1, $3 ); }
-      ;
+function_definition
+    : declaration_specifier declarator compound_statement { }
+    ;
 
-/*  TODO-5 : Add support for (- 5) and (- x). You'll need to add production rules for the unary minus operator and create a NegOperator. */
-UNARY : FACTOR        { $$ = $1; }
-      | T_MINUS UNARY { $$ = new NegOperator( $2 ); }
-      | FACTOR T_EXPONENT UNARY { $$ = new ExpOperator( $1, $3 ); }
-      ;
+// name of stuff (variable / function etc)
+declarator
+    : direct_declarator { $$ = $1; }
+    ;
 
-FACTOR : T_NUMBER     { $$ = new Number( $1 ); }
-       | T_VARIABLE   { $$ = new Variable( *$1 ); }
-       | T_LBRACKET EXPR T_RBRACKET { $$ = $2; }
-       | T_LOG T_LBRACKET EXPR T_RBRACKET { $$ = new LogFunction($3); }
-       | T_EXP T_LBRACKET EXPR T_RBRACKET { $$ = new ExpFunction($3); }
-       | T_SQRT T_LBRACKET EXPR T_RBRACKET { $$ = new SqrtFunction($3); }
-       ;
+direct_declarator
+    : IDENTIFIER { new Declarator() }
+    | T_LBRACKET declarator T_RBRACKET    { $$ = $2; }
+    | direct_declarator T_LBRACKET T_RBRACKET { $$ = new FunctionDeclarator($1); }
+    ;
+
+
+// type of stuff
+declaration_specifier
+    : type_specifier { $$ = $1; }
+    ;
+
+type_specifier
+    : T_INT { $$ = new PrimitiveType{_int}; }
+    ;
+
+compound_statement
+    : T_LCBRACKET T_RCBRACKET                   { scope stuff }
+    | T_LCBRACKET statement_list T_RCBRACKET    { scope stuff }
+    ;
+
+statement_list
+    : statement                     { initialise statement "list" }
+    | statement_list statement      { add to statement list }
+
+statement
+    : compound_statement        { $$ = $1; }
+    | expression_statement      { $$ = $1; }
+    | jump_statement            { $$ = $1; }
+    ;
+
+expression_statement
+    : T_SEMICOLON               { ; }
+    | expression T_SEMICOLON    { $$ = $1; }
+    ;
+
+jump_statement
+    : T_RETURN T_SEMICOLON              { new Return(); }
+    | T_RETURN expression T_SEMICOLON   { new Return($2); }
+    ;
+
+expression
+    : assignment_expression     { $$ = $1; }
+    ;
+
+assignment_expression
+    : unary_expression                                      { $$ = $1; }
+    | unary_expression T_ASSIGNMENT assignment_expression   { }
+    ;
+
+unary_expression
+    : postfix_expression    { $$ = $1; }
+    ;
+
+postfix_expression
+    : primary_expression                       { $$ = $1; }
+    | postfix_expression T_LBRACKET T_RBRACKET { $$ = new FunctionCall($1); }
+    ;
+
+primary_expression
+	: IDENTIFIER          { $$ = new Identifier(*$1); }
+    | INT_LITERALS        { $$ = new Integer($1); }
+//	| CONSTANT
+//	| STRING_LITERAL
+//	| '(' expression ')'
+	;
 
 %%
+
+
 
 const Expression *g_root; // Definition of variable (to match declaration earlier)
 
