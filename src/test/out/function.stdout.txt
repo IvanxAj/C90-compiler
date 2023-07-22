@@ -1,0 +1,9 @@
+Token type: 1
+Token type: 8
+Token type: 3
+Token type: 4
+Token type: 5
+Token type: 2
+Number: 5
+Token type: 7
+Token type: 6
