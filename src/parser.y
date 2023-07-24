@@ -2,7 +2,7 @@
   #include "ast.hpp"
   #include <cassert>
 
-  extern const Expression *g_root; // A way of getting the AST out
+  extern const Node *g_root; // A way of getting the AST out
 
   //! This is to fix problems when generating C++
   // We are declaring the functions provided by Flex, so
@@ -11,27 +11,35 @@
   void yyerror(const char *);
 }
 
-// Represents the value associated with any kind of
-// AST node.
+ // Represents the value associated with any kind of
+ // AST node.
 %union{
-  const Expression *expr;
+  const Node *node;
+  Declarator *declarator_node;
   double number;
   std::string *string;
 }
 
+ /* ----------------------------------------------------------          Tokens           -------------------------------------------------------------- */
+
+ // Arithmetic operators
 %token T_TIMES T_DIVIDE T_PLUS T_MINUS
-%token T_LBRACKET T_RBRACKET
-%token T_LCBRACKET T_RCBRACKET
-%token T_SEMICOLON T_ASSIGNMENT
-%token T_NUMBER T_VARIABLE
+ // Character Operators
+%token T_LBRACKET T_RBRACKET T_LCBRACKET T_RCBRACKET T_SEMICOLON T_ASSIGNMENT
+ // Types operators
 %token T_INT
+ // Control flow operators
 %token T_RETURN
+ // Stuff
 %token IDENTIFIER INT_LITERALS
 
-%type <expr>   declarator direct_declarator declaration_specifier type_specifier primary_expression compound_statement
-%type <expr>   statement expression_statement jump_statement expression assignment_expression unary_expression postfix_expression
+ /* ----------------------------------------------------------          Types           -------------------------------------------------------------- */
+
+%type <node>   function_definition primary_expression compound_statement statement_list declaration_specifier type_specifier
+%type <node>   statement expression_statement jump_statement expression assignment_expression unary_expression postfix_expression
+%type <declarator_node>  declarator direct_declarator
 %type <number> INT_LITERALS
-%type <string> IDENTFIER
+%type <string> IDENTIFIER
 
 %start ROOT
 
@@ -41,38 +49,39 @@
 ROOT : function_definition { g_root = $1; }
 
 function_definition
-    : declaration_specifier declarator compound_statement { }
+    : declaration_specifier declarator compound_statement { $$ = new FunctionDefinition($2, $3); }
     ;
 
-// name of stuff (variable / function etc)
+ /*  type of stuff */
+declaration_specifier
+    : type_specifier { $$ = $1; }
+    ;
+
+ /*$$ = new PrimitiveType(INT);*/
+type_specifier
+    : T_INT { ; }
+    ;
+
+ /* name of stuff (variable / function etc) */
 declarator
     : direct_declarator { $$ = $1; }
     ;
 
 direct_declarator
-    : IDENTIFIER { new Declarator() }
-    | T_LBRACKET declarator T_RBRACKET    { $$ = $2; }
-    | direct_declarator T_LBRACKET T_RBRACKET { $$ = new FunctionDeclarator($1); }
-    ;
-
-
-// type of stuff
-declaration_specifier
-    : type_specifier { $$ = $1; }
-    ;
-
-type_specifier
-    : T_INT { $$ = new PrimitiveType{_int}; }
+    : IDENTIFIER { new Declarator(*$1); }
+    | direct_declarator T_LBRACKET T_RBRACKET { $$ = $1; }
     ;
 
 compound_statement
-    : T_LCBRACKET T_RCBRACKET                   { scope stuff }
-    | T_LCBRACKET statement_list T_RCBRACKET    { scope stuff }
+    : T_LCBRACKET statement_list T_RCBRACKET    { $$ = $2; }
+    /* : T_LCBRACKET T_RCBRACKET                   { scope stuff } */
     ;
 
+ /* Assuming only one statement */
 statement_list
-    : statement                     { initialise statement "list" }
-    | statement_list statement      { add to statement list }
+    : statement                     { $$ = $1; }
+    | statement_list statement
+    ;
 
 statement
     : compound_statement        { $$ = $1; }
@@ -86,8 +95,7 @@ expression_statement
     ;
 
 jump_statement
-    : T_RETURN T_SEMICOLON              { new Return(); }
-    | T_RETURN expression T_SEMICOLON   { new Return($2); }
+    : T_RETURN expression T_SEMICOLON   { $$ = new Return($2); }
     ;
 
 expression
@@ -96,7 +104,7 @@ expression
 
 assignment_expression
     : unary_expression                                      { $$ = $1; }
-    | unary_expression T_ASSIGNMENT assignment_expression   { }
+    | unary_expression T_ASSIGNMENT assignment_expression
     ;
 
 unary_expression
@@ -105,24 +113,23 @@ unary_expression
 
 postfix_expression
     : primary_expression                       { $$ = $1; }
-    | postfix_expression T_LBRACKET T_RBRACKET { $$ = new FunctionCall($1); }
     ;
 
 primary_expression
-	: IDENTIFIER          { $$ = new Identifier(*$1); }
-    | INT_LITERALS        { $$ = new Integer($1); }
-//	| CONSTANT
-//	| STRING_LITERAL
-//	| '(' expression ')'
+    : INT_LITERALS        { $$ = new Integer($1); }
+	/* | IDENTIFIER          { $$ = new Identifier(*$1); }
+	/* | CONSTANT
+	| STRING_LITERAL
+	| '(' expression ')' */
 	;
 
 %%
 
 
 
-const Expression *g_root; // Definition of variable (to match declaration earlier)
+const Node *g_root; // Definition of variable (to match declaration earlier)
 
-const Expression *parseAST()
+const Node *parseAST()
 {
   g_root=0;
   yyparse();

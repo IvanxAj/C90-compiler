@@ -4,8 +4,7 @@
 // Avoid error "error: `fileno' was not declared in this scope"
 extern "C" int fileno(FILE *stream);
 
-// #include "parser.tab.hpp"
-#include "token_test.hpp"
+#include "parser.tab.hpp"
 
 %}
 
@@ -31,8 +30,8 @@ L               [a-zA-Z_]
 
 ";"             { return T_SEMICOLON; }
 
-{L}({L}|{D})*   { yylval.wordValue = new std::string(yytext); return IDENTIFIER; }
-{D}+            { yylval.numberValue = atoi(yytext); return INT_LITERALS; }
+{L}({L}|{D})*   { yylval.string = new std::string(yytext); return IDENTIFIER; }
+{D}+            { yylval.number = atoi(yytext); return INT_LITERALS; }
 
 
 [ \t\r\n]+		{;}
