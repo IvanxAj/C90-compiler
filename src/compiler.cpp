@@ -48,8 +48,16 @@ int main(int argc, char **argv)
     // Compile the input
     std::cout << "Compiling: " << sourcePath << std::endl;
 
-    // compile somehow
+    Context context;
+
     const Node *root = parseAST();
+
+    // compile somehow
+    root->compile(output, context);
+
+    std::cout << "We did it" << std::endl;
+
+    delete root;
 
     std::cout << "Compiled to: " << outputPath << std::endl;
 

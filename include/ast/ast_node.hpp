@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include "context.hpp"
 
 /*
 Alternative of ifndef to stop header files being pasted multiple times
@@ -15,25 +16,31 @@ typedef const Node* Node_Ptr;
 
 class Node {
 public:
-    virtual void compile(std::ostream& os, int destReg) const = 0;
+
+    // virtual destructor allowing derived classes to be properly destroyed when deleted through pointer to the base class.
+    virtual ~Node() {};
+
+    virtual void compile(std::ostream& os, Context& context) const = 0;
     // shouldnt mutate ast value
 
 };
 
 
-
 // Return will contain a single node
+
 class Return
     : public Node
 {
 public:
     Return(Node_Ptr _expression): expression(_expression) {}
-    // compile value of expression into correct register AO = 10
-    void compile(std::ostream& os, int destReg) const override {
-        expression->compile(os, 10);
 
-        // expression->compile(os, destReg);
-        // os << "mov " << "10, " << destReg << std::endl;
+    ~Return() { delete expression; }
+    // compile value of expression into correct register AO = 10
+    void compile(std::ostream& os, Context& context) const override {
+
+        expression->compile(os,context);
+        os << "mv a0,a5" << std::endl;
+
     };
 
 private:
@@ -41,15 +48,15 @@ private:
 
 };
 
-
-
 class Integer
     : public Node
 {
 public:
     Integer(int _value): value(_value) {}
-    void compile(std::ostream& os, int destReg) const override {
-        os << "li " << destReg << ", " << value << "std::endl";
+
+    void compile(std::ostream& os, Context& context) const override {
+
+        os << "li "<< "a5" << "," << value << std::endl;
     };
 
 private:
@@ -69,9 +76,8 @@ class Declarator
 public:
     Declarator(std::string _identifier) : identifier(_identifier) {}
 
-    void compile(std::ostream& os, int destReg) const override {
 
-    }
+    void compile(std::ostream& os, Context& context) const override {}
 
     // only declarator have identifier so getIdentifier method only for declarators
     const std::string& getIdentifier() const {
@@ -90,12 +96,30 @@ class FunctionDefinition
 // Three branches: type, declarator, compound statement
 public:
     FunctionDefinition(Declarator* _funcDeclarator, Node_Ptr _statements) : funcDeclarator(_funcDeclarator), statements(_statements) {}
+    ~FunctionDefinition() {
+        delete funcDeclarator;
+        delete statements;
+    }
 
-    void compile(std::ostream& os, int destReg) const override {
+    void compile(std::ostream& os, Context& context) const override {
         // print flag + do stack + frame pointer stuff
         auto funcName = funcDeclarator->getIdentifier();
-        os << funcName << ":\n";
-        statements->compile(os, destReg);
+        os << ".text" << std::endl;
+        os << ".globl " << funcName << std::endl;
+
+        os << funcName << ":" << std::endl;
+
+        os << "addi sp,sp,-16" << std::endl;
+        os << "sw s0,12(sp)" << std::endl;
+        os << "addi s0,sp,16" << std::endl;
+
+        // processing here
+        statements->compile(os, context);
+
+        os  << "lw s0,12(sp)" << std::endl;
+        os <<"addi sp,sp,16" << std::endl;
+        os << "jr ra" << std::endl;
+
     }
 
 private:
@@ -134,3 +158,10 @@ private:
 
 // };
 
+// int main() {
+//     Context context;
+//     Node_Ptr ast = new FunctionDefinition( new Declarator("f"), new Return( new Integer(5)));
+//     ast->compile(std::cout, context);
+//     delete ast;
+//     return 0;
+// };

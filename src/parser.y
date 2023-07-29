@@ -1,6 +1,7 @@
 %code requires{
   #include "ast.hpp"
   #include <cassert>
+  #include <iostream>
 
   extern const Node *g_root; // A way of getting the AST out
 
@@ -46,7 +47,7 @@
 %%
 
 
-ROOT : function_definition { g_root = $1; }
+ROOT : function_definition { g_root = $1;}
 
 function_definition
     : declaration_specifier declarator compound_statement { $$ = new FunctionDefinition($2, $3); }
@@ -68,8 +69,8 @@ declarator
     ;
 
 direct_declarator
-    : IDENTIFIER { new Declarator(*$1); }
-    | direct_declarator T_LBRACKET T_RBRACKET { $$ = $1; }
+    : IDENTIFIER                                { $$ = new Declarator(*$1); }
+    | direct_declarator T_LBRACKET T_RBRACKET   { $$ = $1; }
     ;
 
 compound_statement
@@ -80,13 +81,14 @@ compound_statement
  /* Assuming only one statement */
 statement_list
     : statement                     { $$ = $1; }
-    | statement_list statement
+    /* | statement_list statement */
     ;
 
 statement
-    : compound_statement        { $$ = $1; }
+    : jump_statement            { $$ = $1; }
+    /* : compound_statement        { $$ = $1; }
     | expression_statement      { $$ = $1; }
-    | jump_statement            { $$ = $1; }
+    */
     ;
 
 expression_statement
@@ -118,7 +120,7 @@ postfix_expression
 primary_expression
     : INT_LITERALS        { $$ = new Integer($1); }
 	/* | IDENTIFIER          { $$ = new Identifier(*$1); }
-	/* | CONSTANT
+	   | CONSTANT
 	| STRING_LITERAL
 	| '(' expression ')' */
 	;
@@ -131,7 +133,7 @@ const Node *g_root; // Definition of variable (to match declaration earlier)
 
 const Node *parseAST()
 {
-  g_root=0;
+  g_root=NULL;
   yyparse();
   return g_root;
 }
