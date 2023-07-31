@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     const Node *root = parseAST();
 
     // compile somehow
-    root->compile(output, context);
+    root->compile(output, context, 10);
 
     std::cout << "We did it" << std::endl;
 

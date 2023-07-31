@@ -20,7 +20,7 @@ public:
     // virtual destructor allowing derived classes to be properly destroyed when deleted through pointer to the base class.
     virtual ~Node() {};
 
-    virtual void compile(std::ostream& os, Context& context) const = 0;
+    virtual void compile(std::ostream& os, Context& context, int destReg) const = 0;
     // shouldnt mutate ast value
 
 };
@@ -36,10 +36,12 @@ public:
 
     ~Return() { delete expression; }
     // compile value of expression into correct register AO = 10
-    void compile(std::ostream& os, Context& context) const override {
+    void compile(std::ostream& os, Context& context, int destReg) const override {
 
-        expression->compile(os,context);
-        os << "mv a0,a5" << std::endl;
+        int expr_reg = context.allocate();
+        expression->compile(os,context, expr_reg);
+
+        os << "mv a0, x" << expr_reg << std::endl;
 
     };
 
@@ -54,10 +56,10 @@ class Integer
 public:
     Integer(int _value): value(_value) {}
 
-    void compile(std::ostream& os, Context& context) const override {
+    void compile(std::ostream& os, Context& context, int destReg) const override {
 
-        os << "li "<< "a5" << "," << value << std::endl;
-    };
+        os << "li x"<< destReg << "," << value << std::endl;
+    }
 
 private:
     int value;
@@ -77,7 +79,7 @@ public:
     Declarator(std::string _identifier) : identifier(_identifier) {}
 
 
-    void compile(std::ostream& os, Context& context) const override {}
+    void compile(std::ostream& os, Context& context, int destReg) const override {}
 
     // only declarator have identifier so getIdentifier method only for declarators
     const std::string& getIdentifier() const {
@@ -101,7 +103,7 @@ public:
         delete statements;
     }
 
-    void compile(std::ostream& os, Context& context) const override {
+    void compile(std::ostream& os, Context& context, int destReg) const override {
         // print flag + do stack + frame pointer stuff
         auto funcName = funcDeclarator->getIdentifier();
         os << ".text" << std::endl;
@@ -114,7 +116,7 @@ public:
         os << "addi s0,sp,16" << std::endl;
 
         // processing here
-        statements->compile(os, context);
+        statements->compile(os, context, destReg);
 
         os  << "lw s0,12(sp)" << std::endl;
         os <<"addi sp,sp,16" << std::endl;
