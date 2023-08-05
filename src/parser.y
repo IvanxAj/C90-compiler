@@ -15,10 +15,13 @@
  // Represents the value associated with any kind of
  // AST node.
 %union{
-  const Node *node;
-  Declarator *declarator_node;
-  double number;
-  std::string *string;
+    double number;
+    std::string *string;
+
+    const Node *node;
+    BaseExpression* base_expression;
+    Declarator *declarator_node;
+    // NodeList* node_list;
 }
 
  /* ----------------------------------------------------------          Tokens           -------------------------------------------------------------- */
@@ -36,9 +39,11 @@
 
  /* ----------------------------------------------------------          Types           -------------------------------------------------------------- */
 
-%type <node>   function_definition primary_expression compound_statement statement_list declaration_specifier type_specifier
-%type <node>   statement expression_statement jump_statement expression assignment_expression unary_expression postfix_expression
+%type <node>   external_declaration function_definition compound_statement statement_list declaration_specifier type_specifier
+%type <node>   statement expression_statement jump_statement
+/* %type <node_list> translation_unit */
 %type <declarator_node>  declarator direct_declarator
+%type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression
 %type <number> INT_LITERALS
 %type <string> IDENTIFIER
 
@@ -48,6 +53,15 @@
 
 
 ROOT : function_definition { g_root = $1;}
+
+/* translation_unit
+	: external_declaration
+	| translation_unit external_declaration
+	;
+
+external_declaration : function_definition  { $$ = $1; }
+                    | declaration          { $$ = $1; }
+                     ; */
 
 function_definition
     : declaration_specifier declarator compound_statement { $$ = new FunctionDefinition($2, $3); }
@@ -69,8 +83,9 @@ declarator
     ;
 
 direct_declarator
-    : IDENTIFIER                                { $$ = new Declarator(*$1); }
-    | direct_declarator T_LBRACKET T_RBRACKET   { $$ = $1; }
+    : IDENTIFIER                                                { $$ = new Declarator(*$1); }
+    | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = $1; }
+    /* | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new } */
     ;
 
 compound_statement
@@ -106,7 +121,7 @@ expression
 
 assignment_expression
     : unary_expression                                      { $$ = $1; }
-    | unary_expression T_ASSIGNMENT assignment_expression
+    /* | unary_expression T_ASSIGNMENT assignment_expression */
     ;
 
 unary_expression
@@ -114,13 +129,14 @@ unary_expression
     ;
 
 postfix_expression
-    : primary_expression                       { $$ = $1; }
+    : primary_expression                            { $$ = $1; }
+    | postfix_expression T_LBRACKET T_RBRACKET      { $$ = new FunctionCall($1); }
     ;
 
 primary_expression
-    : INT_LITERALS        { $$ = new Integer($1); }
-	/* | IDENTIFIER          { $$ = new Identifier(*$1); }
-	   | CONSTANT
+    : IDENTIFIER          { $$ = new Identifier(*$1); }
+    | INT_LITERALS        { $$ = new Integer($1); }
+	/*   | CONSTANT
 	| STRING_LITERAL
 	| '(' expression ')' */
 	;

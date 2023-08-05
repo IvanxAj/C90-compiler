@@ -21,6 +21,30 @@ $x18-27 $s2-s11     Callee-saved registers
 $28-31  $t3-t6      Temp registers
 
 */
+
+enum specifier
+{
+    _int,
+    _void
+};
+
+struct variable
+{
+
+    int reg;            // Reg it is stored in
+    int offset;         // Offset from frame pointer
+    specifier type;     // Type of variable - only support int for now
+
+};
+
+struct stackFrame
+{
+    int offset;                                 // offset to previous stackframe
+    std::map<std::string, variable> varMap;     // Track variables in scope
+
+};
+
+
 struct Context
 {
 
@@ -31,6 +55,9 @@ struct Context
          1, 1, 1, 1, 1, 1, 1, 1,
          1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
          0, 0, 0, 0};
+
+    // stack
+    std::vector<stackFrame> stack;
 
     void useReg(int i) { usedRegs[i] = 1; }
     void freeReg(int i) { usedRegs[i] = 0; }
@@ -47,7 +74,14 @@ struct Context
         }
         return -1;
     }
+
+    // enter + exit scope
+
+
+
 };
+
+
 
 
 // struct StackFrameContext
