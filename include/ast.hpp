@@ -16,3 +16,17 @@
 #include "ast/ast_wrappers.hpp"
 
 extern const Node *parseAST();
+
+typedef std::vector<Node_Ptr> List;
+typedef List* List_Ptr;
+
+inline List_Ptr createList(Node_Ptr node) {
+    List_Ptr nodeList = new List();
+    nodeList->push_back(node);
+    return nodeList;
+}
+
+inline List_Ptr appendList(List_Ptr nodeList, Node_Ptr node) {
+    nodeList->push_back(node);
+    return nodeList;
+}

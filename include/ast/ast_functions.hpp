@@ -37,6 +37,7 @@ public:
 
         void compile(std::ostream& os, Context& context, int destReg) const override {
             std::string funcName = id->getIdentifier();
+            std::cout << "Function call" << std::endl;
             os << "call " << funcName << std::endl;
             os << "mv a5,a0" << std::endl;
         }

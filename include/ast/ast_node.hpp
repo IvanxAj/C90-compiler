@@ -16,6 +16,9 @@ class Node;
 
 typedef const Node* Node_Ptr;
 
+typedef std::vector<Node_Ptr> List;
+typedef List* List_Ptr;
+
 
 class Node {
 public:
@@ -54,9 +57,9 @@ public:
 // private:
 //     std::vector<Node_Ptr> statements;
 
-//     // could be vector of unique ptr instead
-//     // std::vector< std::unique_ptr<Node> > statements;
-//     // then as we are transferring ownership wld use std::move
+    // could be vector of unique ptr instead
+    // std::vector< std::unique_ptr<Node> > statements;
+    // then as we are transferring ownership wld use std::move
 
 // };
 

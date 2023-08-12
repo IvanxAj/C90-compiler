@@ -19,9 +19,12 @@
     std::string *string;
 
     const Node *node;
-    BaseExpression* base_expression;
+    BaseExpression *base_expression;
     Declarator *declarator_node;
-    // NodeList* node_list;
+
+    // BaseList *base_list;
+    List_Ptr node_list;
+
 }
 
  /* ----------------------------------------------------------          Tokens           -------------------------------------------------------------- */
@@ -39,9 +42,10 @@
 
  /* ----------------------------------------------------------          Types           -------------------------------------------------------------- */
 
-%type <node>   external_declaration function_definition compound_statement statement_list declaration_specifier type_specifier
-%type <node>   statement expression_statement jump_statement
-/* %type <node_list> translation_unit */
+%type <node>   external_declaration function_definition compound_statement declaration_specifier type_specifier
+%type <node>   declaration statement expression_statement jump_statement
+
+%type <node_list> translation_unit statement_list
 %type <declarator_node>  declarator direct_declarator
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression
 %type <number> INT_LITERALS
@@ -52,16 +56,21 @@
 %%
 
 
-ROOT : function_definition { g_root = $1;}
+ROOT : translation_unit { g_root = new ProgramRoot($1); }
 
-/* translation_unit
-	: external_declaration
-	| translation_unit external_declaration
+translation_unit
+	: external_declaration { $$ = createList($1); }
+	| translation_unit external_declaration { $$ = appendList($1, $2); }
 	;
 
-external_declaration : function_definition  { $$ = $1; }
-                    | declaration          { $$ = $1; }
-                     ; */
+external_declaration
+    : function_definition  { $$ = $1; }
+    | declaration          { $$ = $1; }
+    ;
+
+declaration : declaration_specifier ';'
+	| declaration_specifier declarator ';'
+	;
 
 function_definition
     : declaration_specifier declarator compound_statement { $$ = new FunctionDefinition($2, $3); }
@@ -89,14 +98,14 @@ direct_declarator
     ;
 
 compound_statement
-    : T_LCBRACKET statement_list T_RCBRACKET    { $$ = $2; }
+    : T_LCBRACKET statement_list T_RCBRACKET    { $$ = new CompoundStatement($2); }
     /* : T_LCBRACKET T_RCBRACKET                   { scope stuff } */
     ;
 
  /* Assuming only one statement */
 statement_list
-    : statement                     { $$ = $1; }
-    /* | statement_list statement */
+    : statement                     { $$ = createList($1); }
+    | statement_list statement      { $$ = appendList($1, $2); }
     ;
 
 statement
