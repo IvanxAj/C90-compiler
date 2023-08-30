@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ast_node.hpp"
-#include "ast_wrappers.hpp"
 
 class FunctionDefinition
     : public Node
@@ -15,10 +14,28 @@ public:
     }
 
     void compile(std::ostream& os, Context& context, int destReg) const override {
-        // print flag + do stack + frame pointer stuff
-        // processing here
+        // print various flags
+        os << ".text" << std::endl;
+        os << ".globl " << funcDeclarator->getIdentifier() << std::endl;
+        os << funcDeclarator->getIdentifier() << ":" << std::endl;
+
+        // stack frame - hard coded for now
+        os << "addi sp,sp,-16" << std::endl;
+        os << "sw ra,12(sp)" << std::endl;
+        os << "sw s0,8(sp)" << std::endl;
+        os << "addi s0,sp,16" << std::endl;
+
+        // handle parameters
         funcDeclarator->compile(os, context, destReg);
+
+        // handle statements
         statements->compile(os, context, destReg);
+
+        // tear down stack frame
+        os << "lw ra,12(sp)" << std::endl;
+        os << "lw s0,8(sp)" << std::endl;
+        os << "addi sp,sp,16" << std::endl;
+        os << "jr ra \n" << std::endl;
     }
 
 private:

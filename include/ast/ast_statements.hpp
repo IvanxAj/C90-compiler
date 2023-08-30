@@ -2,12 +2,18 @@
 
 #include "ast_node.hpp"
 
-
 class CompoundStatement
     : public Node
 {
 public:
     CompoundStatement(List_Ptr _statement_list) : statement_list(_statement_list) {};
+
+    ~CompoundStatement() {
+        for (auto node: *statement_list) {
+            delete node;
+        }
+        delete statement_list;
+    }
 
     // handle scope stuff as well
     void compile(std::ostream& os, Context& context, int destReg) const override {
@@ -34,10 +40,10 @@ public:
         expression->compile(os,context, 15);
 
         // os << "mv a0, x" << expr_reg << std::endl;
+
+        // TODO maybe not hard code a5
         os << "mv a0, a5" << std::endl;
-        os  << "lw s0,12(sp)" << std::endl;
-        os <<"addi sp,sp,16" << std::endl;
-        os << "jr ra" << std::endl;
+        // os << "jr ra" << std::endl;
 
     };
 

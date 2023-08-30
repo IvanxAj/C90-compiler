@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ast_node.hpp"
-#include "../ast.hpp"
 
 class ProgramRoot
     : public Node
@@ -24,7 +23,8 @@ class BaseExpression
     : public Node
 {
 public:
-    virtual std::string getIdentifier() {}
+    virtual ~BaseExpression() {};
+    virtual std::string getIdentifier() { return ""; }
 
 };
 

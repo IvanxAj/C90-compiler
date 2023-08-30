@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ast_node.hpp"
-#include "ast_wrappers.hpp"
 
 class Integer
     : public BaseExpression

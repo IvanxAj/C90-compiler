@@ -6,6 +6,7 @@
 set -uo pipefail
 shopt -s globstar
 
+make clean
 make bin/c_compiler
 
 mkdir -p bin
