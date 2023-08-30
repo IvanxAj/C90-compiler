@@ -1,17 +1,15 @@
 #pragma once
 
 #include "ast_node.hpp"
+#include "ast_wrappers.hpp"
 
 class Integer
     : public BaseExpression
 {
 public:
-    Integer(int _value): value(_value) {}
+    Integer(int _value);
 
-    void compile(std::ostream& os, Context& context, int destReg) const override {
-
-        os << "li x"<< destReg << "," << value << std::endl;
-    }
+    void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
     int value;
@@ -21,13 +19,10 @@ class Identifier
     : public BaseExpression
 {
 public:
-    Identifier(std::string _name): name(_name) {}
+    Identifier(std::string _name);
 
-    void compile(std::ostream& os, Context& context, int destReg) const override { }
-
-    std::string getIdentifier()  override {
-        return name;
-    }
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+    std::string getIdentifier()  override;
 private:
     std::string name;
 };

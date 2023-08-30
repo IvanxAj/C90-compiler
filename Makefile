@@ -1,31 +1,38 @@
-CPPFLAGS += -std=c++20 -W -Wall -g -I include
+LINK_TARGET = bin/c_compiler
+CC = g++
 
-.PHONY: default
+CPPFLAGS += -std=c++20 -W -Wall -g -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function
+CPPFLAGS += -I include -I src
 
-default: bin/c_compiler
+HPPFILES := $(shell find include/ -type f -name "*.hpp")
+CPPFILES := $(shell find src/ -type f -name "*.cpp")
 
-all : src/parser.tab.cpp src/parser.tab.hpp src/lexer.yy.cpp bin/c_compiler compiler
+OBJS = $(patsubst %.cpp,%.o,$(CPPFILES))
 
-src/parser.tab.cpp src/parser.tab.hpp : src/parser.y
-	@echo "Compiling Parser"
-	bison -v -d src/parser.y -o src/parser.tab.cpp
+all : $(LINK_TARGET)
 
+$(LINK_TARGET) : src/lexer.yy.o src/parser.tab.o $(OBJS)
+	$(CC) $(CPPFLAGS) $^ -o $@
+	mkdir -p bin
+
+compiler : $(LINK_TARGET)
+	@echo "Compiler built successfully."
+
+src/%.o: src/%.cpp $(HPPFILES)
+	$(CC) $(CPPFLAGS) -c -o $@ $<
+
+src/parser.tab.cpp src/parser.tab.hpp: src/parser.y
+	yacc -v -d src/parser.y -o src/parser.tab.cpp
+	mkdir -p bin;
 
 src/lexer.yy.cpp : src/lexer.flex src/parser.tab.hpp
-	@echo "Compiling Flex"
-	flex -o src/lexer.yy.cpp  src/lexer.flex
+	flex -o src/lexer.yy.cpp src/lexer.flex
 
-bin/c_compiler :  src/cli.cpp src/compiler.o src/parser.tab.o src/lexer.yy.o src/parser.tab.o
-	@echo "Compiling compiler"
-	mkdir -p bin
-	g++ $(CPPFLAGS) -o bin/c_compiler $^
-
-compiler : bin/c_compiler
-
+.PHONY: clean
 clean :
 	rm -rf bin/*
-	rm src/*.tab.cpp
-	rm src/*.tab.hpp
-	rm src/*.output
-	rm src/*.yy.cpp
-	rm src/*.o
+	rm -f src/*.tab.hpp
+	rm -f src/*.tab.cpp
+	rm -f src/*.yy.cpp
+	rm -f src/*.output
+	find src/ -type f -name '*.o' -delete
