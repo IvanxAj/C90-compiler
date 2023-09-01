@@ -45,8 +45,8 @@
 %type <node>   declaration statement expression_statement jump_statement
 
 %type <node_list> translation_unit statement_list
-%type <declarator_node>  declarator direct_declarator
-%type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression
+%type <declarator_node>  declarator direct_declarator init_declarator
+%type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
 %type <number> INT_LITERALS
 %type <string> IDENTIFIER
 
@@ -67,9 +67,11 @@ external_declaration
     | declaration          { $$ = $1; }
     ;
 
-declaration : declaration_specifier ';'
-	| declaration_specifier declarator ';'
+declaration
+    : declaration_specifier T_SEMICOLON
+	| declaration_specifier init_declarator T_SEMICOLON     /* { $$ = new Declaration($1, $2); } */
 	;
+
 
 function_definition
     : declaration_specifier declarator compound_statement { $$ = new FunctionDefinition($2, $3); }
@@ -85,9 +87,15 @@ type_specifier
     : T_INT { ; }
     ;
 
+init_declarator
+	: declarator /*{ $$ = new Init_Declarator($1);} */
+	| declarator T_ASSIGNMENT initializer /* { $$ = new Init_Declarator($1, $3);} */
+	;
+
  /* name of stuff (variable / function etc) */
 declarator
     : direct_declarator { $$ = $1; }
+    /* pointer direct_declarator - handle pointers here */
     ;
 
 direct_declarator
@@ -95,6 +103,11 @@ direct_declarator
     | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = $1; }
     /* | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new } */
     ;
+
+initializer
+	: assignment_expression { $$ = $1;}
+	/* | '{' initializer_list '}' { $$ = new ArrayInitializer($2);}  */
+	;
 
 compound_statement
     : T_LCBRACKET statement_list T_RCBRACKET    { $$ = new CompoundStatement($2); }

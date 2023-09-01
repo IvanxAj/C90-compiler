@@ -1,4 +1,4 @@
-#include "ast/ast_declarations.hpp"
+#include "ast/ast_declarator.hpp"
 
 Declarator::Declarator(std::string _identifier) : identifier(_identifier) {}
 

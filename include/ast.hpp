@@ -7,7 +7,7 @@
 
 
 #include "ast/ast_node.hpp"
-#include "ast/ast_declarations.hpp"
+#include "ast/ast_declarator.hpp"
 #include "ast/ast_wrappers.hpp"
 #include "ast/ast_expressions.hpp"
 #include "ast/ast_statements.hpp"

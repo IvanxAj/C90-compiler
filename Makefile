@@ -22,7 +22,7 @@ src/%.o: src/%.cpp $(HPPFILES)
 	$(CC) $(CPPFLAGS) -c -o $@ $<
 
 src/parser.tab.cpp src/parser.tab.hpp: src/parser.y
-	yacc -v -d src/parser.y -o src/parser.tab.cpp
+	bison -v -d src/parser.y -o src/parser.tab.cpp
 	mkdir -p bin;
 
 src/lexer.yy.cpp : src/lexer.flex src/parser.tab.hpp

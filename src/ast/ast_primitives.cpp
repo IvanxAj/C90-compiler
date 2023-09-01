@@ -4,8 +4,21 @@
 Integer::Integer(int _value): value(_value) {}
 
 void Integer::compile(std::ostream& os, Context& context, int destReg) const {
-    os << "li x"<< destReg << "," << value << std::endl;
+    os << "li "<< context.getMnemonic(destReg) << "," << value << std::endl;
 }
+
+// void Integer::compile(std::ostream& os, Context& context, int destReg) const {
+//     if (value >= -4096 && value <= 4096) {
+//         os << "li " << context.getMnemonic(destReg) << "," << value << std::endl;
+//     } else {
+//         int base = value / 4096 * 4096;
+//         int offset = value - base;
+//         os << "li " << context.getMnemonic(destReg) << "," << base << std::endl;
+//         if (offset != 0) {
+//             os << "addi " << context.getMnemonic(destReg) << "," << context.getMnemonic(destReg) << "," << offset << std::endl;
+//         }
+//     }
+// }
 
 Identifier::Identifier(std::string _name): name(_name) {}
 

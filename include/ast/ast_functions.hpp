@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ast_node.hpp"
-#include "ast_declarations.hpp"
+#include "ast_declarator.hpp"
 #include "ast_wrappers.hpp"
 
 class FunctionDefinition

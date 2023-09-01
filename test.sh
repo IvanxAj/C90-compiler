@@ -24,11 +24,11 @@ fail_testcase() {
     printf '%s\n' "</testcase>" >> "${J_UNIT_OUTPUT_FILE}"
 }
 
-test_folder="compiler_tests/_example"
+test_folder="custom_tests"
 
 # old iterator: test_folder="compiler_tests/basic/function_empty"
 
-for DRIVER in "${test_folder}"/*_driver.c;  do
+for DRIVER in "${test_folder}"/**/*_driver.c;  do
     (( TOTAL++ ))
 
     TO_ASSEMBLE="${DRIVER%_driver.c}.c"

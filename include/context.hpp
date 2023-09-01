@@ -25,34 +25,65 @@ $28-31  $t3-t6      Temp registers
 enum specifier
 {
     _int,
+    _char,
     _void
 };
 
-struct variable
+// defines the size of all types - currently on int and void
+const std::array<int, 3> typeSizes = {4, 1, 0};
+
+struct Variable
 {
 
-    int reg;            // Reg it is stored in
-    int offset;         // Offset from frame pointer
     specifier type;     // Type of variable - only support int for now
+    int offset;         // Offset from frame pointer
+
+    Variable(): type(_int), offset(0) {}
+
+    Variable(specifier _type, int _offset)
+        : type(_type), offset(_offset) {}
 
 };
 
 struct stackFrame
 {
-    int offset;                                 // offset to previous stackframe
-    std::map<std::string, variable> varMap;     // Track variables in scope
+    std::map<std::string, Variable> bindings;     // Track variables in scope
+    int local_var_offset = -16;                   // track current local var offset
+
+    // void addVar(std::string& _name, specifier _type, int _offset) {
+    //     bindings[_name] = Variable(_type, _offset);
+    // }
+
+    // take in offset or keep internal? - what if I need to allocate more memory
+    // consider moving internally
+    void addVar(std::string& _name, specifier _type) {
+        int varSize = typeSizes[_type];
+        local_var_offset -= varSize;
+        bindings[_name] = Variable(_type, local_var_offset);
+    }
 
 };
 
-
 struct Context
 {
+    std::string getMnemonic(int i) {
+        static const std::array<std::string, 32> regNames = {
+            "zero", "ra", "sp", "gp", "tp",
+            "t0", "t1", "t2",
+            "s0", "s1",
+            "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
+            "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
+            "t3", "t4", "t5", "t6"
+        };
+
+        return regNames[i];
+    }
 
     bool usedRegs[32] =
         {1, 1, 1, 1, 1,
          0, 0, 0,
          1, 1,
-         1, 1, 1, 1, 1, 1, 1, 1,
+         1, 1, 1, 0, 0, 1, 1, 1,
          1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
          0, 0, 0, 0};
 
@@ -75,18 +106,5 @@ struct Context
         return -1;
     }
 
-    // enter + exit scope
-
-
-
 };
 
-
-
-
-// struct StackFrameContext
-// {
-//     // local variables - map variable name to location on stack
-//     // std::map< std::string, location >
-
-// };
