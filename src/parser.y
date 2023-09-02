@@ -99,7 +99,7 @@ declarator
     ;
 
 direct_declarator
-    : IDENTIFIER                                                { $$ = new Declarator(*$1); }
+    : IDENTIFIER                                                { $$ = new Declarator(*$1); delete $1; }
     | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = $1; }
     /* | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new } */
     ;
@@ -155,7 +155,7 @@ postfix_expression
     ;
 
 primary_expression
-    : IDENTIFIER          { $$ = new Identifier(*$1); }
+    : IDENTIFIER          { $$ = new Identifier(*$1); delete $1; }
     | INT_LITERALS        { $$ = new Integer($1); }
 	/*   | CONSTANT
 	| STRING_LITERAL

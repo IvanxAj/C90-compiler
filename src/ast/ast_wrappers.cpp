@@ -1,6 +1,14 @@
 #include "ast/ast_wrappers.hpp"
 
-ProgramRoot::ProgramRoot(List* _list ) : list(_list) {};
+ProgramRoot::ProgramRoot(List_Ptr _list ) : list(_list) {};
+
+ProgramRoot::~ProgramRoot() {
+    // delete list;
+    for (auto node: *list) {
+        delete node;
+    }
+    delete list;
+}
 
 void ProgramRoot::compile(std::ostream& os, Context& context, int destReg) const {
     for (auto node: *list) {
@@ -10,4 +18,7 @@ void ProgramRoot::compile(std::ostream& os, Context& context, int destReg) const
 
 
 BaseExpression::~BaseExpression() {};
-std::string BaseExpression::getIdentifier() { return ""; }
+const std::string& BaseExpression::getIdentifier() {
+    static const std::string empty_string = "";
+    return empty_string;
+}

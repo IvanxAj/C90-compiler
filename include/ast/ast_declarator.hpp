@@ -7,8 +7,7 @@ class Declarator
 {
 // printing identifier is behaviour of functiondef not declarator -> pass up
 public:
-    Declarator(std::string _identifier);
-
+    Declarator(const std::string& _identifier);
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
 

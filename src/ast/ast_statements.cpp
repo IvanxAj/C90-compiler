@@ -20,7 +20,9 @@ void CompoundStatement::compile(std::ostream& os, Context& context, int destReg)
 // Return will contain a single node
 Return::Return(Node_Ptr _expression): expression(_expression) {}
 
-Return::~Return() { delete expression; }
+Return::~Return() {
+    delete expression;
+}
 // compile value of expression into correct register AO = 10
 void Return::compile(std::ostream& os, Context& context, int destReg) const {
 

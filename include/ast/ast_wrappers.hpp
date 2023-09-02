@@ -5,12 +5,12 @@ class ProgramRoot
     : public Node
 {
 public:
-    ProgramRoot(List* _list );
-
+    ProgramRoot(List_Ptr _list );
+    ~ProgramRoot();
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
-    List* list;
+    List_Ptr list;
 };
 
 
@@ -19,7 +19,7 @@ class BaseExpression
 {
 public:
     virtual ~BaseExpression();
-    virtual std::string getIdentifier();
+    virtual const std::string& getIdentifier();
 
 };
 

@@ -1,6 +1,6 @@
 #include "ast/ast_declarator.hpp"
 
-Declarator::Declarator(std::string _identifier) : identifier(_identifier) {}
+Declarator::Declarator(const std::string& _identifier) : identifier(_identifier) {}
 
 void Declarator::compile(std::ostream& os, Context& context, int destReg) const {
     // TODO: handle parameters

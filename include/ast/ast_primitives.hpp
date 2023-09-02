@@ -19,10 +19,10 @@ class Identifier
     : public BaseExpression
 {
 public:
-    Identifier(std::string _name);
+    Identifier(const std::string& _name);
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
-    std::string getIdentifier()  override;
+    const std::string& getIdentifier()  override;
 private:
     std::string name;
 };

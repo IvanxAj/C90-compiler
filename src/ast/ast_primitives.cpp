@@ -20,10 +20,10 @@ void Integer::compile(std::ostream& os, Context& context, int destReg) const {
 //     }
 // }
 
-Identifier::Identifier(std::string _name): name(_name) {}
+Identifier::Identifier(const std::string& _name): name(_name) {}
 
 void Identifier::compile(std::ostream& os, Context& context, int destReg) const { }
 
-std::string Identifier::getIdentifier() {
+const std::string& Identifier::getIdentifier() {
     return name;
 }

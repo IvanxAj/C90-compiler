@@ -45,8 +45,6 @@ int main(int argc, char **argv)
     std::ofstream output;
     output.open(outputPath, std::ios::trunc);
 
-    // Compile the input
-    std::cout << "Compiling: " << sourcePath << std::endl;
 
     Context context;
 
@@ -55,11 +53,7 @@ int main(int argc, char **argv)
     // compile somehow
     root->compile(output, context, 10);
 
-    std::cout << "We did it" << std::endl;
-
     delete root;
-
-    std::cout << "Compiled to: " << outputPath << std::endl;
 
     output.close();
     return 0;
