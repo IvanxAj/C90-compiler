@@ -15,11 +15,15 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     os << ".globl " << funcDeclarator->getIdentifier() << std::endl;
     os << funcDeclarator->getIdentifier() << ":" << std::endl;
 
-    // stack frame - hard coded for now
-    os << "addi sp,sp,-16" << std::endl;
-    os << "sw ra,12(sp)" << std::endl;
-    os << "sw s0,8(sp)" << std::endl;
-    os << "addi s0,sp,16" << std::endl;
+
+    // stack frame - hard coded for now to 32 bytes
+    os << "addi sp,sp,-32" << std::endl;
+    os << "sw ra,28(sp)" << std::endl;
+    os << "sw s0,24(sp)" << std::endl;
+    os << "addi s0,sp,32" << std::endl;
+
+    stackFrame newframe;
+    context.stack.push_back(newframe);
 
     // handle parameters
     funcDeclarator->compile(os, context, destReg);
@@ -28,9 +32,9 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     statements->compile(os, context, destReg);
 
     // tear down stack frame
-    os << "lw ra,12(sp)" << std::endl;
-    os << "lw s0,8(sp)" << std::endl;
-    os << "addi sp,sp,16" << std::endl;
+    os << "lw ra,28(sp)" << std::endl;
+    os << "lw s0,24(sp)" << std::endl;
+    os << "addi sp,sp,32" << std::endl;
     os << "jr ra \n" << std::endl;
 }
 

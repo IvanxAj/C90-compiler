@@ -44,7 +44,7 @@
 %type <node>   external_declaration function_definition compound_statement declaration_specifier type_specifier
 %type <node>   declaration statement expression_statement jump_statement
 
-%type <node_list> translation_unit statement_list
+%type <node_list> translation_unit statement_list declaration_list
 %type <declarator_node>  declarator direct_declarator init_declarator
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
 %type <number> INT_LITERALS
@@ -58,7 +58,7 @@
 ROOT : translation_unit { g_root = new ProgramRoot($1); }
 
 translation_unit
-	: external_declaration { $$ = createList($1); }
+	: external_declaration                  { $$ = createList($1); }
 	| translation_unit external_declaration { $$ = appendList($1, $2); }
 	;
 
@@ -67,9 +67,14 @@ external_declaration
     | declaration          { $$ = $1; }
     ;
 
+declaration_list
+	: declaration                       { $$ = createList($1); }
+	| declaration_list declaration      { $$ = appendList($1, $2); }
+	;
+
 declaration
     : declaration_specifier T_SEMICOLON
-	| declaration_specifier init_declarator T_SEMICOLON     /* { $$ = new Declaration($1, $2); } */
+	| declaration_specifier init_declarator T_SEMICOLON     { $$ = new Declaration($1, $2); }
 	;
 
 
@@ -88,8 +93,8 @@ type_specifier
     ;
 
 init_declarator
-	: declarator /*{ $$ = new Init_Declarator($1);} */
-	| declarator T_ASSIGNMENT initializer /* { $$ = new Init_Declarator($1, $3);} */
+	: declarator                                { $$ = new Init_Declarator($1); }
+	| declarator T_ASSIGNMENT initializer       { $$ = new Init_Declarator($1, $3); }
 	;
 
  /* name of stuff (variable / function etc) */
@@ -101,7 +106,7 @@ declarator
 direct_declarator
     : IDENTIFIER                                                { $$ = new Declarator(*$1); delete $1; }
     | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = $1; }
-    /* | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new } */
+    /* | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new FuncDeclarator } */
     ;
 
 initializer
@@ -110,7 +115,9 @@ initializer
 	;
 
 compound_statement
-    : T_LCBRACKET statement_list T_RCBRACKET    { $$ = new CompoundStatement($2); }
+    : T_LCBRACKET statement_list T_RCBRACKET                    { $$ = new CompoundStatement($2); }
+    | T_LCBRACKET declaration_list T_RCBRACKET
+    | T_LCBRACKET declaration_list statement_list T_RCBRACKET
     /* : T_LCBRACKET T_RCBRACKET                   { scope stuff } */
     ;
 

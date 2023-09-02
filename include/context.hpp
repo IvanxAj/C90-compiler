@@ -1,6 +1,6 @@
 #pragma once
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -47,8 +47,9 @@ struct Variable
 
 struct stackFrame
 {
-    std::map<std::string, Variable> bindings;     // Track variables in scope
-    int local_var_offset = -16;                   // track current local var offset
+    std::unordered_map<std::string, Variable> bindings;     // Track variables in scope
+    int local_var_offset = -16;                             // track current local var offset
+    int frame_size = 32;
 
     // void addVar(std::string& _name, specifier _type, int _offset) {
     //     bindings[_name] = Variable(_type, _offset);
@@ -56,10 +57,18 @@ struct stackFrame
 
     // take in offset or keep internal? - what if I need to allocate more memory
     // consider moving internally
-    void addVar(std::string& _name, specifier _type) {
+    int addVar(std::string& _name, specifier _type) {
         int varSize = typeSizes[_type];
         local_var_offset -= varSize;
         bindings[_name] = Variable(_type, local_var_offset);
+        return local_var_offset;
+    }
+
+    int getVar(std::string name) {
+
+        if(bindings.find(name) != bindings.end())
+            return bindings[name].offset;
+        return -1;
     }
 
 };
@@ -93,17 +102,22 @@ struct Context
     void useReg(int i) { usedRegs[i] = 1; }
     void freeReg(int i) { usedRegs[i] = 0; }
 
-    int allocate()
-    {
-        for (int i = 5; i < 32; i++)
-        {
-            if (!usedRegs[i])
-            {
+    int allocate() {
+        for (int i = 5; i < 32; i++) {
+            if (!usedRegs[i]) {
                 useReg(i);
                 return i;
             }
         }
         return -1;
+    }
+
+    int getLocalVar(std::string name) {
+        return stack.back().getVar(name);
+    }
+
+    int addLocalVar(std::string& name, specifier type) {
+        return stack.back().addVar(name, type);
     }
 
 };
