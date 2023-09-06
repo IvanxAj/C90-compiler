@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <cmath>
 
 /*
 REGISTERS RISC-V
@@ -65,10 +66,8 @@ struct stackFrame
     }
 
     int getVar(std::string name) {
-
-        if(bindings.find(name) != bindings.end())
-            return bindings[name].offset;
-        return -1;
+        auto it = bindings.find(name);
+        return it == bindings.end() ? -1 : it->second.offset;
     }
 
 };
@@ -102,7 +101,7 @@ struct Context
     void useReg(int i) { usedRegs[i] = 1; }
     void freeReg(int i) { usedRegs[i] = 0; }
 
-    int allocate() {
+    int allocateReg() {
         for (int i = 5; i < 32; i++) {
             if (!usedRegs[i]) {
                 useReg(i);
@@ -120,5 +119,62 @@ struct Context
         return stack.back().addVar(name, type);
     }
 
+    // Create a new scope by adding a new stack frame - defaulted
+    void newScope() {
+        stack.emplace_back();
+    }
+
+    // Delete the last scope by removing the last stack frame
+    void popScope() {
+        if (!stack.empty()) {
+            stack.pop_back();
+        }
+    }
+
+
+    int calculateStackSize(int totalParamBytes, int totalLocalVarBytes) {
+        int stackSize = 16;  // Minimum stack size
+
+        // Calculate space needed for local variables
+        if (totalLocalVarBytes > 0) {
+            stackSize += 16 * std::ceil(static_cast<double>(totalLocalVarBytes) / 16.0);
+            // can set the local_var_offset here
+        }
+
+        // Calculate space needed for parameters
+        if (totalParamBytes > 0) {
+            stackSize += 16 * std::ceil(static_cast<double>(totalParamBytes) / 16.0);
+            // can set the param offset here
+        }
+
+        return stackSize;
+    }
+
+     void debugScope() {
+        if (stack.empty()) {
+            std::cerr << "No current scope to debug." << std::endl;
+            return;
+        }
+
+        const stackFrame& currentFrame = stack.back();
+        std::cerr << "Debugging current scope: " << std::endl;
+
+        for (const auto& entry : currentFrame.bindings) {
+            std::string name = entry.first;
+            Variable var = entry.second;
+            int offset = var.offset;
+            std::string type;
+
+            switch (var.type) {
+                case _int: type = "int"; break;
+                case _char: type = "char"; break;
+                case _void: type = "void"; break;
+                // Add more types here as needed
+                default: type = "Unknown"; break;
+            }
+
+            std::cerr << "Variable: " << name << ", Type: " << type << ", Offset: " << offset << std::endl;
+        }
+    }
 };
 
