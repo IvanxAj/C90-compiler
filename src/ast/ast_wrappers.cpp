@@ -22,3 +22,10 @@ const std::string& BaseExpression::getIdentifier() {
     static const std::string empty_string = "";
     return empty_string;
 }
+
+
+BaseDeclarator::~BaseDeclarator() {};
+const std::string& BaseDeclarator::getIdentifier() {
+    static const std::string empty_string = "";
+    return empty_string;
+}

@@ -20,7 +20,9 @@
 
     const Node *node;
     BaseExpression *base_expression;
-    Declarator *declarator_node;
+    BaseDeclarator *base_declarator;
+
+    Specifier type;
 
     // BaseList *base_list;
     List_Ptr node_list;
@@ -41,14 +43,17 @@
 
  /* ----------------------------------------------------------          Types           -------------------------------------------------------------- */
 
-%type <node>   external_declaration function_definition compound_statement declaration_specifier type_specifier
+%type <node>   external_declaration function_definition compound_statement
 %type <node>   declaration statement expression_statement jump_statement
 
 %type <node_list> translation_unit statement_list declaration_list
-%type <declarator_node>  declarator direct_declarator init_declarator
+
+%type <base_declarator>  declarator direct_declarator init_declarator
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
+
 %type <number> INT_LITERALS
 %type <string> IDENTIFIER
+%type <type> declaration_specifier type_specifier
 
 %start ROOT
 
@@ -73,8 +78,7 @@ declaration_list
 	;
 
 declaration
-    : declaration_specifier T_SEMICOLON
-	| declaration_specifier init_declarator T_SEMICOLON     { $$ = new Declaration($1, $2); }
+	: declaration_specifier init_declarator T_SEMICOLON     { $$ = new Declaration($1, $2); }
 	;
 
 
@@ -89,7 +93,7 @@ declaration_specifier
 
  /*$$ = new PrimitiveType(INT);*/
 type_specifier
-    : T_INT { ; }
+    : T_INT { $$ = _int; }
     ;
 
 init_declarator
@@ -115,9 +119,9 @@ initializer
 	;
 
 compound_statement
-    : T_LCBRACKET statement_list T_RCBRACKET                    { $$ = new CompoundStatement($2); }
-    | T_LCBRACKET declaration_list T_RCBRACKET
-    | T_LCBRACKET declaration_list statement_list T_RCBRACKET
+    : T_LCBRACKET statement_list T_RCBRACKET                        { $$ = new CompoundStatement($2, nullptr); }
+    | T_LCBRACKET declaration_list T_RCBRACKET                      { $$ = new CompoundStatement(nullptr, $2); }
+    | T_LCBRACKET declaration_list statement_list T_RCBRACKET       { $$ = new CompoundStatement($3, $2);      }
     /* : T_LCBRACKET T_RCBRACKET                   { scope stuff } */
     ;
 
@@ -129,8 +133,8 @@ statement_list
 
 statement
     : jump_statement            { $$ = $1; }
-    /* : compound_statement        { $$ = $1; }
-    | expression_statement      { $$ = $1; }
+    | compound_statement        { $$ = $1; }
+    /*| expression_statement      { $$ = $1; }
     */
     ;
 
@@ -164,16 +168,13 @@ postfix_expression
 primary_expression
     : IDENTIFIER          { $$ = new Identifier(*$1); delete $1; }
     | INT_LITERALS        { $$ = new Integer($1); }
-	/*   | CONSTANT
-	| STRING_LITERAL
-	| '(' expression ')' */
 	;
 
 %%
 
 
 
-const Node *g_root; // Definition of variable (to match declaration earlier)
+const Node *g_root;
 
 const Node *parseAST()
 {

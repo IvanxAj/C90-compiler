@@ -21,7 +21,7 @@ The test script can be run by
 Specification
 ==========
 
-All input source code is valid and there is no expectation for the compiler to *optimise* its input. Spec (https://github.com/LangProc/langproc-2022-cw/blob/main/c_compiler.md)
+All input source code is valid and there is no expectation for the compiler to *optimise* its input. [Spec](https://github.com/LangProc/langproc-2022-cw/blob/main/c_compiler.md)
 
 Acknowledgements
 ================

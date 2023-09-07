@@ -6,7 +6,7 @@ class CompoundStatement
     : public Node
 {
 public:
-    CompoundStatement(List_Ptr _statement_list);
+    CompoundStatement(List_Ptr _statement_list = nullptr, List_Ptr _declaration_list = nullptr);
 
     ~CompoundStatement();
 
@@ -14,6 +14,7 @@ public:
     void compile(std::ostream& os, Context& context, int destReg) const override;
 private:
     List_Ptr statement_list;
+    List_Ptr declaration_list;
 };
 
 // Return will contain a single node

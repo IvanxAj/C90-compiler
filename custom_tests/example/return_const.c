@@ -1,3 +1,3 @@
 int f() {
-    return 10000;
+    return 15;
 }

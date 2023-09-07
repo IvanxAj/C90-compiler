@@ -4,5 +4,5 @@ int f();
 
 int main()
 {
-    return !(f() == 10000);
+    return !(f() == 15);
 }

@@ -23,3 +23,17 @@ public:
 
 };
 
+
+class BaseDeclarator
+    : public Node
+{
+public:
+
+    // will need a getSize soon probs
+    virtual ~BaseDeclarator();
+    virtual const std::string& getIdentifier();
+
+    // ?: if these base classes continue to have the same methods - combine?
+
+};
+

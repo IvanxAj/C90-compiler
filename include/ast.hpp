@@ -13,6 +13,8 @@
 #include "ast/ast_statements.hpp"
 #include "ast/ast_primitives.hpp"
 #include "ast/ast_functions.hpp"
+#include "ast/ast_init_declarator.hpp"
+#include "ast/ast_declaration.hpp"
 
 #include "context.hpp"
 

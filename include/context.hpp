@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <unordered_map>
@@ -23,7 +24,7 @@ $28-31  $t3-t6      Temp registers
 
 */
 
-enum specifier
+enum Specifier
 {
     _int,
     _char,
@@ -36,36 +37,25 @@ const std::array<int, 3> typeSizes = {4, 1, 0};
 struct Variable
 {
 
-    specifier type;     // Type of variable - only support int for now
+    Specifier type;     // Type of variable - only support int for now
     int offset;         // Offset from frame pointer
 
     Variable(): type(_int), offset(0) {}
 
-    Variable(specifier _type, int _offset)
+    Variable(Specifier _type, int _offset)
         : type(_type), offset(_offset) {}
 
 };
 
-struct stackFrame
+struct Scope
 {
     std::unordered_map<std::string, Variable> bindings;     // Track variables in scope
-    int local_var_offset = -16;                             // track current local var offset
-    int frame_size = 32;
 
-    // void addVar(std::string& _name, specifier _type, int _offset) {
-    //     bindings[_name] = Variable(_type, _offset);
-    // }
-
-    // take in offset or keep internal? - what if I need to allocate more memory
-    // consider moving internally
-    int addVar(std::string& _name, specifier _type) {
-        int varSize = typeSizes[_type];
-        local_var_offset -= varSize;
-        bindings[_name] = Variable(_type, local_var_offset);
-        return local_var_offset;
+    void addLocalVar(const std::string& name, Specifier type, int offset) {
+        bindings[name] = Variable(type, offset);
     }
 
-    int getVar(std::string name) {
+    int getLocalVar(const std::string& name) const {
         auto it = bindings.find(name);
         return it == bindings.end() ? -1 : it->second.offset;
     }
@@ -96,7 +86,16 @@ struct Context
          0, 0, 0, 0};
 
     // stack
-    std::vector<stackFrame> stack;
+    int local_var_offset = -16;     // track current local var offset
+    int param_offset = -32;         // track current param offset
+    int frame_size = 32;
+
+    std::vector<Scope> scopes;
+
+    // Add a global scope on constructor
+    Context() {
+        scopes.push_back(Scope());
+    }
 
     void useReg(int i) { usedRegs[i] = 1; }
     void freeReg(int i) { usedRegs[i] = 0; }
@@ -111,28 +110,36 @@ struct Context
         return -1;
     }
 
-    int getLocalVar(std::string name) {
-        return stack.back().getVar(name);
+    int getVar(const std::string& name) {
+        for (int i = scopes.size() - 1; i >= 0; --i) {
+            int offset = scopes[i].getLocalVar(name);
+            if (offset != -1) {
+                return offset;
+            }
+        }
+        return -1;
     }
 
-    int addLocalVar(std::string& name, specifier type) {
-        return stack.back().addVar(name, type);
+    int addVar(const std::string& name, Specifier type) {
+        int varSize = typeSizes[type];
+        local_var_offset -= varSize;
+        scopes.back().addLocalVar(name, type, local_var_offset);
+        return local_var_offset;
     }
 
     // Create a new scope by adding a new stack frame - defaulted
     void newScope() {
-        stack.emplace_back();
+        scopes.emplace_back();
     }
 
     // Delete the last scope by removing the last stack frame
     void popScope() {
-        if (!stack.empty()) {
-            stack.pop_back();
+        if (!scopes.empty()) {
+            scopes.pop_back();
         }
     }
 
-
-    int calculateStackSize(int totalParamBytes, int totalLocalVarBytes) {
+    int calculateStackSize(int totalLocalVarBytes, int totalParamBytes) {
         int stackSize = 16;  // Minimum stack size
 
         // Calculate space needed for local variables
@@ -150,30 +157,32 @@ struct Context
         return stackSize;
     }
 
-     void debugScope() {
-        if (stack.empty()) {
+    void debugScope() {
+        if (scopes.empty()) {
             std::cerr << "No current scope to debug." << std::endl;
             return;
         }
 
-        const stackFrame& currentFrame = stack.back();
-        std::cerr << "Debugging current scope: " << std::endl;
+        std::cerr << "Debugging all scopes:" << std::endl;
 
-        for (const auto& entry : currentFrame.bindings) {
-            std::string name = entry.first;
-            Variable var = entry.second;
-            int offset = var.offset;
-            std::string type;
+        for (size_t i = 0; i < scopes.size(); ++i) {
+            const Scope& currentScope = scopes[i];
+            std::cerr << "Scope " << i << ":" << std::endl;
 
-            switch (var.type) {
-                case _int: type = "int"; break;
-                case _char: type = "char"; break;
-                case _void: type = "void"; break;
-                // Add more types here as needed
-                default: type = "Unknown"; break;
+            for (const auto& entry : currentScope.bindings) {
+                std::string name = entry.first;
+                Variable var = entry.second;
+                int offset = var.offset;
+                std::string type;
+
+                switch (var.type) {
+                    case _int: type = "int"; break;
+                    case _char: type = "char"; break;
+                    default: type = "Unknown"; break;
+                }
+
+                std::cerr << "  Variable: " << name << ", Type: " << type << ", Offset: " << offset << std::endl;
             }
-
-            std::cerr << "Variable: " << name << ", Type: " << type << ", Offset: " << offset << std::endl;
         }
     }
 };

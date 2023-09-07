@@ -1,7 +1,7 @@
 #include "ast/ast_functions.hpp"
 
 // Three branches: type, declarator, compound statement
-FunctionDefinition::FunctionDefinition(Declarator* _funcDeclarator, Node_Ptr _statements)
+FunctionDefinition::FunctionDefinition(BaseDeclarator* _funcDeclarator, Node_Ptr _statements)
     : funcDeclarator(_funcDeclarator), statements(_statements) {}
 
 FunctionDefinition::~FunctionDefinition() {
@@ -16,25 +16,26 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     os << funcDeclarator->getIdentifier() << ":" << std::endl;
 
 
-    // stack frame - hard coded for now to 32 bytes
-    os << "addi sp,sp,-32" << std::endl;
-    os << "sw ra,28(sp)" << std::endl;
-    os << "sw s0,24(sp)" << std::endl;
-    os << "addi s0,sp,32" << std::endl;
+    // call getSize on its children nodes - want to return size required by: local_vars, parameters
+    // call calcStackSizez(local_var_size, param_size) - hardcode to 32 bytes for now
+    int stack_size = context.calculateStackSize(4, 0);
 
-    stackFrame newframe;
-    context.stack.push_back(newframe);
+    // stack frame
+    os << "addi sp,sp," << -1 * stack_size << std::endl;
+    os << "sw ra, "<< stack_size - 4 << "(sp)" << std::endl;
+    os << "sw s0, " << stack_size - 8 << "(sp)" << std::endl;
+    os << "addi s0,sp," << stack_size << std::endl;
 
-    // handle parameters
+    // TODO: handle parameters
     funcDeclarator->compile(os, context, destReg);
 
     // handle statements
     statements->compile(os, context, destReg);
 
     // tear down stack frame
-    os << "lw ra,28(sp)" << std::endl;
-    os << "lw s0,24(sp)" << std::endl;
-    os << "addi sp,sp,32" << std::endl;
+    os << "lw ra, "<< stack_size - 4 << "(sp)" << std::endl;
+    os << "lw s0, " << stack_size - 8 << "(sp)" << std::endl;
+    os << "addi sp,sp, " << stack_size << std::endl;
     os << "jr ra \n" << std::endl;
 }
 

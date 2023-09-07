@@ -7,6 +7,6 @@ void Declarator::compile(std::ostream& os, Context& context, int destReg) const 
 }
 
 // only declarator have identifier so getIdentifier method only for declarators
-const std::string& Declarator::getIdentifier() const {
+const std::string& Declarator::getIdentifier() {
     return identifier;
 }

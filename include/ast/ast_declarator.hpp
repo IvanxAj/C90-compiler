@@ -1,9 +1,10 @@
 #pragma once
 
 #include "ast_node.hpp"
+#include "ast_wrappers.hpp"
 
 class Declarator
-    : Node
+    : public BaseDeclarator
 {
 // printing identifier is behaviour of functiondef not declarator -> pass up
 public:
@@ -11,8 +12,8 @@ public:
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
-    // only declarator have identifier so getIdentifier method only for declarators
-    const std::string& getIdentifier() const;
+    // declarator have identifier so getIdentifier method
+    const std::string& getIdentifier() override;
 
 private:
     std::string identifier;
