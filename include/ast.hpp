@@ -15,6 +15,7 @@
 #include "ast/ast_functions.hpp"
 #include "ast/ast_init_declarator.hpp"
 #include "ast/ast_declaration.hpp"
+#include "ast/ast_assignment.hpp"
 
 #include "context.hpp"
 

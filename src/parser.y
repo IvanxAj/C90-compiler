@@ -134,12 +134,11 @@ statement_list
 statement
     : jump_statement            { $$ = $1; }
     | compound_statement        { $$ = $1; }
-    /*| expression_statement      { $$ = $1; }
-    */
+    | expression_statement      { $$ = $1; }
     ;
 
 expression_statement
-    : T_SEMICOLON               { ; }
+    : T_SEMICOLON               {}
     | expression T_SEMICOLON    { $$ = $1; }
     ;
 
@@ -153,7 +152,7 @@ expression
 
 assignment_expression
     : unary_expression                                      { $$ = $1; }
-    /* | unary_expression T_ASSIGNMENT assignment_expression */
+    | unary_expression T_ASSIGNMENT assignment_expression   { $$ = new Assignment($1, $3); }
     ;
 
 unary_expression
