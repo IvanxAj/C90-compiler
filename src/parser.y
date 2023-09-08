@@ -31,7 +31,7 @@
  /* ----------------------------------------------------------          Tokens           -------------------------------------------------------------- */
 
  // Arithmetic operators
-%token T_TIMES T_DIVIDE T_PLUS T_MINUS
+%token T_TIMES T_DIVIDE T_PLUS T_MINUS T_MODULO T_LEFT_OP T_RIGHT_OP T_INC_OP T_DEC_OP
  // Character Operators
 %token T_LBRACKET T_RBRACKET T_LCBRACKET T_RCBRACKET T_SEMICOLON T_ASSIGNMENT
  // Types operators
@@ -49,7 +49,8 @@
 %type <node_list> translation_unit statement_list declaration_list
 
 %type <base_declarator>  declarator direct_declarator init_declarator
-%type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
+%type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer multiplicative_expression
+%type <base_expression> additive_expression shift_expression
 
 %type <number> INT_LITERALS
 %type <string> IDENTIFIER
@@ -107,6 +108,7 @@ declarator
     /* pointer direct_declarator - handle pointers here */
     ;
 
+// update to use FunctionDeclarator
 direct_declarator
     : IDENTIFIER                                                { $$ = new Declarator(*$1); delete $1; }
     | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = $1; }
@@ -151,9 +153,28 @@ expression
     ;
 
 assignment_expression
-    : unary_expression                                      { $$ = $1; }
-    | unary_expression T_ASSIGNMENT assignment_expression   { $$ = new Assignment($1, $3); }
+    : shift_expression                                      { $$ = $1; }
+    | shift_expression T_ASSIGNMENT assignment_expression   { $$ = new Assignment($1, $3); }
     ;
+
+shift_expression
+	: additive_expression                               { $$ = $1; }
+	| shift_expression T_LEFT_OP additive_expression
+	| shift_expression T_RIGHT_OP additive_expression
+	;
+
+additive_expression
+	: multiplicative_expression                                 { $$ = $1; }
+	| additive_expression T_PLUS multiplicative_expression      { $$ = new Addition($1, $3); }
+	| additive_expression T_MINUS multiplicative_expression
+	;
+
+multiplicative_expression
+	: unary_expression                                      { $$ = $1; }
+	| multiplicative_expression T_TIMES unary_expression
+	| multiplicative_expression T_DIVIDE unary_expression
+	| multiplicative_expression T_MODULO unary_expression
+	;
 
 unary_expression
     : postfix_expression    { $$ = $1; }
@@ -162,6 +183,7 @@ unary_expression
 postfix_expression
     : primary_expression                            { $$ = $1; }
     | postfix_expression T_LBRACKET T_RBRACKET      { $$ = new FunctionCall($1); }
+    /* | postfix_expression T_LBRACKET argument_expression_list T_RBRACKET { $$ = new FunctionCall($1, $3);} */
     ;
 
 primary_expression

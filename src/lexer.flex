@@ -25,6 +25,12 @@ L               [a-zA-Z_]
 "+"             { return T_PLUS; }
 "/"             { return T_DIVIDE; }
 "-"             { return T_MINUS; }
+"%"             { return T_MODULO; }
+
+">>"			      { return T_RIGHT_OP; }
+"<<"			      { return T_LEFT_OP; }
+"++"			      { return T_INC_OP; }
+"--"			      { return T_DEC_OP; }
 
 "="             { return T_ASSIGNMENT; }
 

@@ -19,3 +19,6 @@
 - Nested scopes work as expected, with a new scope created and popped at the end in `CompoundStatement` codegen
 - For now just support initialisted declaration only `int a = 5;` as we dont have the assignment operator yet - next thing to do
 
+**08/09/2023** Operators
+
+- Finished assignment, and started other arithmetic operators. Need to consider how to efficiently use registers - especially when expressions start being chained eg `int a = 1 + 2 + 3 + 4 + 5` results in `Addition` recursively from left to right. Can't really implement any kind of liveness analysis. Have hardcoded whatever register optimisations I could think of for add - fine for now. Might have to start storing stuff on the stack?

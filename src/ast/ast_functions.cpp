@@ -44,9 +44,8 @@ FunctionCall::FunctionCall(BaseExpression* _id): id(_id) { }
 
 void FunctionCall::compile(std::ostream& os, Context& context, int destReg) const  {
     std::string funcName = id->getIdentifier();
-    std::cout << "Function call" << std::endl;
     os << "call " << funcName << std::endl;
-    os << "mv a5,a0" << std::endl;
+    os << "mv " << context.getMnemonic(destReg) << ",a0" << std::endl;
 }
 
 
