@@ -4,12 +4,12 @@
 #include "ast_wrappers.hpp"
 
 class Init_Declarator
-    : public BaseDeclarator
+    : public BaseDeclaration
 {
 public:
     // two constructors - with + without initialisation
-    Init_Declarator(BaseDeclarator* _declarator, BaseExpression* _initialiser);
-    Init_Declarator(BaseDeclarator* _declarator);
+    Init_Declarator(BaseDeclaration* _declarator, BaseExpression* _initialiser);
+    Init_Declarator(BaseDeclaration* _declarator);
 
     ~Init_Declarator();
 
@@ -18,6 +18,6 @@ public:
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
-    BaseDeclarator* declarator;
+    BaseDeclaration* declarator;
     BaseExpression* initialiser;
 };

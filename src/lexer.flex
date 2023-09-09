@@ -8,7 +8,7 @@ extern "C" int fileno(FILE *stream);
 
 %}
 
-D			    [0-9]
+D			          [0-9]
 L               [a-zA-Z_]
 
 %%
@@ -35,6 +35,7 @@ L               [a-zA-Z_]
 "="             { return T_ASSIGNMENT; }
 
 ";"             { return T_SEMICOLON; }
+","             { return(','); }
 
 {L}({L}|{D})*   { yylval.string = new std::string(yytext); return IDENTIFIER; }
 {D}+            { yylval.number = atoi(yytext); return INT_LITERALS; }

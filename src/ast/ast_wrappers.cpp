@@ -24,8 +24,12 @@ const std::string& BaseExpression::getIdentifier() {
 }
 
 
-BaseDeclarator::~BaseDeclarator() {};
-const std::string& BaseDeclarator::getIdentifier() {
+BaseDeclaration::~BaseDeclaration() {};
+const std::string& BaseDeclaration::getIdentifier() {
     static const std::string empty_string = "";
     return empty_string;
+}
+int BaseDeclaration::getSize() const {
+    // default implementation
+    return 0;
 }

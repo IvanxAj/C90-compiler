@@ -4,11 +4,11 @@
 #include "ast_wrappers.hpp"
 
 class Declaration
-    : public BaseDeclarator
+    : public BaseDeclaration
 {
 public:
     // two constructors - with + without initialisation
-    Declaration(Specifier _type, BaseDeclarator* _declarator);
+    Declaration(Specifier _type, BaseDeclaration* _declarator);
 
     ~Declaration();
 
@@ -16,5 +16,5 @@ public:
 
 private:
     Specifier type;
-    BaseDeclarator* init_declarator ;
+    BaseDeclaration* init_declarator ;
 };

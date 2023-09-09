@@ -18,6 +18,8 @@ The test script can be run by
 
     ./test.sh
 
+    ./test_single.sh single.c
+
 Specification
 ==========
 

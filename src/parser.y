@@ -20,7 +20,7 @@
 
     const Node *node;
     BaseExpression *base_expression;
-    BaseDeclarator *base_declarator;
+    BaseDeclaration *base_declaration;
 
     Specifier type;
 
@@ -46,9 +46,9 @@
 %type <node>   external_declaration function_definition compound_statement
 %type <node>   declaration statement expression_statement jump_statement
 
-%type <node_list> translation_unit statement_list declaration_list
+%type <node_list> translation_unit statement_list declaration_list parameter_list
 
-%type <base_declarator>  declarator direct_declarator init_declarator
+%type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer multiplicative_expression
 %type <base_expression> additive_expression shift_expression
 
@@ -111,9 +111,18 @@ declarator
 // update to use FunctionDeclarator
 direct_declarator
     : IDENTIFIER                                                { $$ = new Declarator(*$1); delete $1; }
-    | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = $1; }
-    /* | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new FuncDeclarator } */
+    | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = new FuncDeclarator($1); }
+    | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new FuncDeclarator($1, $3); }
     ;
+
+parameter_list
+	: parameter_declaration                         { $$ = createList($1); }
+	| parameter_list ',' parameter_declaration      { $$ = appendList($1, $3); }
+    ;
+
+parameter_declaration
+	: type_specifier declarator     { $$ = new ParamDeclaration($1, $2); }
+	;
 
 initializer
 	: assignment_expression { $$ = $1;}
@@ -166,7 +175,7 @@ shift_expression
 additive_expression
 	: multiplicative_expression                                 { $$ = $1; }
 	| additive_expression T_PLUS multiplicative_expression      { $$ = new Addition($1, $3); }
-	| additive_expression T_MINUS multiplicative_expression
+	| additive_expression T_MINUS multiplicative_expression     { $$ = new Subtraction($1, $3); }
 	;
 
 multiplicative_expression

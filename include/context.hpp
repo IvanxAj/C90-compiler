@@ -88,7 +88,11 @@ struct Context
     // stack
     int local_var_offset = -16;     // track current local var offset
     int param_offset = -32;         // track current param offset
+    int param_offset_excess = 0;    // track params on previous stack frame
     int frame_size = 32;
+
+    // flags
+    bool isFunctionDef = 0;
 
     std::vector<Scope> scopes;
 
@@ -127,6 +131,20 @@ struct Context
         return local_var_offset;
     }
 
+    int addParam(const std::string& name, Specifier type, int param_index) {
+        int param_size = typeSizes[type];
+        if (param_index < 8) {
+            param_offset -= param_size;
+            scopes.back().addLocalVar(name, type, param_offset);
+            return param_offset;
+        }
+
+        scopes.back().addLocalVar(name, type, param_offset_excess);
+        param_offset_excess += param_size;
+        // 1 indicates that the param was not taken from register
+        return 1;
+    }
+
     // Create a new scope by adding a new stack frame - defaulted
     void newScope() {
         scopes.emplace_back();
@@ -143,15 +161,17 @@ struct Context
         int stackSize = 16;  // Minimum stack size
 
         // Calculate space needed for local variables
+        // can set the local_var_offset here
         if (totalLocalVarBytes > 0) {
             stackSize += 16 * std::ceil(static_cast<double>(totalLocalVarBytes) / 16.0);
-            // can set the local_var_offset here
         }
+
+        // can set the param offset here
+        param_offset = -stackSize;
 
         // Calculate space needed for parameters
         if (totalParamBytes > 0) {
             stackSize += 16 * std::ceil(static_cast<double>(totalParamBytes) / 16.0);
-            // can set the param offset here
         }
 
         return stackSize;

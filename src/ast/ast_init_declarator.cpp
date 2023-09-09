@@ -2,10 +2,10 @@
 
 // Constructors
 
-Init_Declarator::Init_Declarator(BaseDeclarator* _declarator, BaseExpression* _initialiser)
+Init_Declarator::Init_Declarator(BaseDeclaration* _declarator, BaseExpression* _initialiser)
     : declarator(_declarator), initialiser(_initialiser) {}
 
-Init_Declarator::Init_Declarator(BaseDeclarator* _declarator)
+Init_Declarator::Init_Declarator(BaseDeclaration* _declarator)
     : declarator(_declarator), initialiser(nullptr) {}
 
 Init_Declarator::~Init_Declarator() {
@@ -25,6 +25,7 @@ void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) c
 
         int reg = context.allocateReg();
         context.useReg(reg);
+        // evaluate initialiser expression e.g. (3+4) = 7
         initialiser->compile(os, context, reg);
 
         int var_offset = context.getVar(var_name);

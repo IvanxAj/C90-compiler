@@ -21,7 +21,11 @@ CompoundStatement::~CompoundStatement() {
 // handle scope stuff as well
 void CompoundStatement::compile(std::ostream& os, Context& context, int destReg) const {
 
-    context.newScope();
+    if (context.isFunctionDef) {
+        context.isFunctionDef = 0;
+    } else {
+        context.newScope();
+    }
 
     std::cerr << "Made new scope" << std::endl;
 

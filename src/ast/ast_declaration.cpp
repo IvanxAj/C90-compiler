@@ -1,7 +1,7 @@
 #include "ast/ast_declaration.hpp"
 
 // two constructors - with + without initialisation
-Declaration::Declaration(Specifier _type, BaseDeclarator* _declarator)
+Declaration::Declaration(Specifier _type, BaseDeclaration* _declarator)
     : type(_type), init_declarator(_declarator) {}
 
 Declaration::~Declaration() {
@@ -16,4 +16,3 @@ void Declaration::compile(std::ostream& os, Context& context, int destReg) const
     init_declarator->compile(os, context, destReg);
 
 };
-

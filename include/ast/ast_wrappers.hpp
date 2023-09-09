@@ -24,14 +24,14 @@ public:
 };
 
 
-class BaseDeclarator
+class BaseDeclaration
     : public Node
 {
 public:
 
-    // will need a getSize soon probs
-    virtual ~BaseDeclarator();
+    virtual ~BaseDeclaration();
     virtual const std::string& getIdentifier();
+    virtual int getSize() const;
 
     // ?: if these base classes continue to have the same methods - combine?
 

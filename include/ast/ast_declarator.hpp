@@ -4,7 +4,7 @@
 #include "ast_wrappers.hpp"
 
 class Declarator
-    : public BaseDeclarator
+    : public BaseDeclaration
 {
 // printing identifier is behaviour of functiondef not declarator -> pass up
 public:

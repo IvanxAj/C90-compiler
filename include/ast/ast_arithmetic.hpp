@@ -17,3 +17,18 @@ private:
     BaseExpression* right;
 };
 
+class Subtraction
+    : public BaseExpression
+{
+public:
+    Subtraction(BaseExpression* _left, BaseExpression* _right);
+    ~Subtraction();
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+
+private:
+    BaseExpression* left;
+    BaseExpression* right;
+};
+
+
