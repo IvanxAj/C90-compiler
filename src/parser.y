@@ -21,6 +21,7 @@
     const Node *node;
     BaseExpression *base_expression;
     BaseDeclaration *base_declaration;
+    BaseStatement *base_statement;
 
     Specifier type;
 
@@ -43,12 +44,13 @@
 
  /* ----------------------------------------------------------          Types           -------------------------------------------------------------- */
 
-%type <node>   external_declaration function_definition compound_statement
-%type <node>   declaration statement expression_statement jump_statement
+%type <node>   external_declaration function_definition
+%type <node>   declaration
 
-%type <node_list> translation_unit statement_list declaration_list parameter_list
+%type <node_list> translation_unit statement_list declaration_list parameter_list argument_expression_list
 
 %type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration
+%type <base_statement> statement expression_statement jump_statement compound_statement
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer multiplicative_expression
 %type <base_expression> additive_expression shift_expression
 
@@ -94,7 +96,7 @@ declaration_specifier
 
  /*$$ = new PrimitiveType(INT);*/
 type_specifier
-    : T_INT { $$ = _int; }
+    : T_INT { $$ = Specifier::_int; }
     ;
 
 init_declarator
@@ -150,7 +152,7 @@ statement
 
 expression_statement
     : T_SEMICOLON               {}
-    | expression T_SEMICOLON    { $$ = $1; }
+    | expression T_SEMICOLON    { $$ = new ExpressionStatement($1); }
     ;
 
 jump_statement
@@ -189,10 +191,15 @@ unary_expression
     : postfix_expression    { $$ = $1; }
     ;
 
+argument_expression_list
+	: assignment_expression                                 { $$ = createList($1); }
+	| argument_expression_list ',' assignment_expression    { $$ = appendList($1, $3); }
+	;
+
 postfix_expression
     : primary_expression                            { $$ = $1; }
     | postfix_expression T_LBRACKET T_RBRACKET      { $$ = new FunctionCall($1); }
-    /* | postfix_expression T_LBRACKET argument_expression_list T_RBRACKET { $$ = new FunctionCall($1, $3);} */
+    | postfix_expression T_LBRACKET argument_expression_list T_RBRACKET { $$ = new FunctionCall($1, $3);}
     ;
 
 primary_expression

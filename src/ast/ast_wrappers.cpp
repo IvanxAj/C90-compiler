@@ -17,19 +17,21 @@ void ProgramRoot::compile(std::ostream& os, Context& context, int destReg) const
 }
 
 
-BaseExpression::~BaseExpression() {};
 const std::string& BaseExpression::getIdentifier() {
     static const std::string empty_string = "";
     return empty_string;
 }
 
 
-BaseDeclaration::~BaseDeclaration() {};
 const std::string& BaseDeclaration::getIdentifier() {
     static const std::string empty_string = "";
     return empty_string;
 }
 int BaseDeclaration::getSize() const {
     // default implementation
+    return 0;
+}
+
+int BaseStatement::getSize() const {
     return 0;
 }

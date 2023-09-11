@@ -19,7 +19,7 @@ class Node {
 public:
 
     // virtual destructor allowing derived classes to be properly destroyed when deleted through pointer to the base class.
-    virtual ~Node();
+    virtual ~Node() = default;
     virtual void compile(std::ostream& os, Context& context, int destReg) const;
 
 };

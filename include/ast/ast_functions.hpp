@@ -8,7 +8,7 @@ class FunctionDefinition
 {
 // Three branches: type, declarator, compound statement
 public:
-    FunctionDefinition(BaseDeclaration* _funcDeclarator, Node_Ptr _statements);
+    FunctionDefinition(BaseDeclaration* _funcDeclarator, BaseStatement* _statements);
     ~FunctionDefinition();
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
@@ -16,7 +16,7 @@ public:
 private:
     // Type* node;
     BaseDeclaration* funcDeclarator;
-    Node_Ptr statements;
+    BaseStatement* statements;
 };
 
 
@@ -59,8 +59,10 @@ class FunctionCall
 {
 public:
     FunctionCall(BaseExpression* _id);
+    FunctionCall(BaseExpression* _id, List_Ptr _args);
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
 private:
     BaseExpression* id;
+    List_Ptr args;
 };

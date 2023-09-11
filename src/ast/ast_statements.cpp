@@ -18,6 +18,18 @@ CompoundStatement::~CompoundStatement() {
         delete declaration_list;
     }
 }
+
+int CompoundStatement::getSize() const {
+    if (!declaration_list) {
+        return 0;
+    }
+    int total_dec_size = 0;
+    for (auto decl : *declaration_list) {
+        total_dec_size += dynamic_cast<const BaseDeclaration*>(decl)->getSize();
+    }
+    return total_dec_size;
+}
+
 // handle scope stuff as well
 void CompoundStatement::compile(std::ostream& os, Context& context, int destReg) const {
 
@@ -47,8 +59,19 @@ void CompoundStatement::compile(std::ostream& os, Context& context, int destReg)
     context.popScope();
 }
 
+ExpressionStatement::ExpressionStatement(BaseExpression* _expression) : expression(_expression) {}
+
+ExpressionStatement::~ExpressionStatement() {
+    delete expression;
+}
+
+void ExpressionStatement::compile(std::ostream& os, Context& context, int destReg) const {
+    expression->compile(os, context, destReg);
+}
+
+
 // Return will contain a single node
-Return::Return(Node_Ptr _expression): expression(_expression) {}
+Return::Return(BaseExpression* _expression): expression(_expression) {}
 
 Return::~Return() {
     delete expression;

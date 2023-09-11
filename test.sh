@@ -25,7 +25,7 @@ fail_testcase() {
     printf '%s\n' "</testcase>" >> "${J_UNIT_OUTPUT_FILE}"
 }
 
-test_folder="custom_tests"
+test_folder="$1"
 
 # Create output directory based on test folder
 output_folder="./bin/output/${test_folder}"

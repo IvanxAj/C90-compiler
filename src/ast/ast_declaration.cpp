@@ -8,6 +8,10 @@ Declaration::~Declaration() {
     delete init_declarator;
 }
 
+int Declaration::getSize() const {
+    return typeSizes[static_cast<int>(type)];
+}
+
 void Declaration::compile(std::ostream& os, Context& context, int destReg) const {
 
     std::string var_name = init_declarator->getIdentifier();

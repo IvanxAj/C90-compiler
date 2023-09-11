@@ -24,15 +24,15 @@ $28-31  $t3-t6      Temp registers
 
 */
 
-enum Specifier
+enum class Specifier
 {
     _int,
     _char,
     _void
 };
 
-// defines the size of all types - currently on int and void
-const std::array<int, 3> typeSizes = {4, 1, 0};
+// defines the size of all types - currently only int, char and void
+constexpr std::array<int, 3> typeSizes = {4, 1, 0};
 
 struct Variable
 {
@@ -40,7 +40,7 @@ struct Variable
     Specifier type;     // Type of variable - only support int for now
     int offset;         // Offset from frame pointer
 
-    Variable(): type(_int), offset(0) {}
+    Variable(): type(Specifier::_int), offset(0) {}
 
     Variable(Specifier _type, int _offset)
         : type(_type), offset(_offset) {}
@@ -125,14 +125,14 @@ struct Context
     }
 
     int addVar(const std::string& name, Specifier type) {
-        int varSize = typeSizes[type];
+        int varSize = typeSizes[static_cast<int>(type)];
         local_var_offset -= varSize;
         scopes.back().addLocalVar(name, type, local_var_offset);
         return local_var_offset;
     }
 
     int addParam(const std::string& name, Specifier type, int param_index) {
-        int param_size = typeSizes[type];
+        int param_size = typeSizes[static_cast<int>(type)];
         if (param_index < 8) {
             param_offset -= param_size;
             scopes.back().addLocalVar(name, type, param_offset);
@@ -155,6 +155,13 @@ struct Context
         if (!scopes.empty()) {
             scopes.pop_back();
         }
+    }
+
+    void resetOffsets() {
+        local_var_offset = -16;
+        param_offset = -32;
+        param_offset_excess = 0;
+        frame_size = 32;
     }
 
     int calculateStackSize(int totalLocalVarBytes, int totalParamBytes) {
@@ -196,8 +203,8 @@ struct Context
                 std::string type;
 
                 switch (var.type) {
-                    case _int: type = "int"; break;
-                    case _char: type = "char"; break;
+                    case Specifier::_int: type = "int"; break;
+                    case Specifier::_char: type = "char"; break;
                     default: type = "Unknown"; break;
                 }
 

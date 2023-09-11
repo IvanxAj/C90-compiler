@@ -18,7 +18,7 @@ class BaseExpression
     : public Node
 {
 public:
-    virtual ~BaseExpression();
+    virtual ~BaseExpression() = default;
     virtual const std::string& getIdentifier();
 
 };
@@ -29,11 +29,18 @@ class BaseDeclaration
 {
 public:
 
-    virtual ~BaseDeclaration();
+    virtual ~BaseDeclaration() = default;
     virtual const std::string& getIdentifier();
     virtual int getSize() const;
 
     // ?: if these base classes continue to have the same methods - combine?
 
+};
+
+class BaseStatement
+    : public Node {
+public:
+    virtual ~BaseStatement() = default;
+    virtual int getSize() const;
 };
 
