@@ -60,6 +60,7 @@ class FunctionCall
 public:
     FunctionCall(BaseExpression* _id);
     FunctionCall(BaseExpression* _id, List_Ptr _args);
+    ~FunctionCall();
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
 private:

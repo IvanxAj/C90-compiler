@@ -8,37 +8,7 @@
 // Left and Right in BinaryOp are also protected - so can still be accessed if needed
 
 
-class Addition
-    : public BinaryOperation
-{
-public:
-    using BinaryOperation::BinaryOperation;
-
-    void compile(std::ostream& os, Context& context, int destReg) const override;
-
-};
-
-class Subtraction
-    : public BinaryOperation
-{
-public:
-    using BinaryOperation::BinaryOperation;
-
-    void compile(std::ostream& os, Context& context, int destReg) const override;
-
-};
-
-class Multiplication
-    : public BinaryOperation
-{
-public:
-    using BinaryOperation::BinaryOperation;
-
-    void compile(std::ostream& os, Context& context, int destReg) const override;
-
-};
-
-class Division
+class Equal
     : public BinaryOperation
 {
 public:
@@ -49,35 +19,91 @@ public:
 };
 
 
-class Modulus
+class NotEqual
     : public BinaryOperation
 {
-public:
     using BinaryOperation::BinaryOperation;
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
-
 };
 
 
-class LeftShift
+class LessThan
     : public BinaryOperation
 {
-public:
     using BinaryOperation::BinaryOperation;
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
-
 };
 
 
-class RightShift
+class GreaterThan
     : public BinaryOperation
 {
-public:
     using BinaryOperation::BinaryOperation;
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
-
 };
 
+
+class LessThanEqual
+    : public BinaryOperation
+{
+    using BinaryOperation::BinaryOperation;
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+};
+
+
+class GreaterThanEqual
+    : public BinaryOperation
+{
+    using BinaryOperation::BinaryOperation;
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+};
+
+
+class BitwiseAnd
+    : public BinaryOperation
+{
+    using BinaryOperation::BinaryOperation;
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+};
+
+
+class BitwiseXor
+    : public BinaryOperation
+{
+    using BinaryOperation::BinaryOperation;
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+};
+
+
+class BitwiseOr
+    : public BinaryOperation
+{
+    using BinaryOperation::BinaryOperation;
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+};
+
+
+class LogicalAnd
+    : public BinaryOperation
+{
+    using BinaryOperation::BinaryOperation;
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+};
+
+
+class LogicalOr
+    : public BinaryOperation
+{
+    using BinaryOperation::BinaryOperation;
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+};

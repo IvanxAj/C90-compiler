@@ -134,6 +134,16 @@ FunctionCall::FunctionCall(BaseExpression* _id): id(_id) { }
 FunctionCall::FunctionCall(BaseExpression* _id, List_Ptr _args)
     : id(_id), args(_args) { }
 
+FunctionCall::~FunctionCall() {
+    delete id;
+    if (args) {
+        for (auto node: *args) {
+            delete node;
+        }
+        delete args;
+    }
+}
+
 void FunctionCall::compile(std::ostream& os, Context& context, int destReg) const  {
     std::string funcName = id->getIdentifier();
 

@@ -16,7 +16,9 @@
 #include "ast/ast_init_declarator.hpp"
 #include "ast/ast_declaration.hpp"
 #include "ast/ast_assignment.hpp"
+#include "ast/ast_binary_operation.hpp"
 #include "ast/ast_arithmetic.hpp"
+#include "ast/ast_logical.hpp"
 
 #include "context.hpp"
 

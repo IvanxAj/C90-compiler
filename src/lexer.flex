@@ -13,35 +13,55 @@ L               [a-zA-Z_]
 
 %%
 
-"int"           { return T_INT; }
-"return"        { return T_RETURN; }
-
-"("             { return T_LBRACKET; }
-")"             { return T_RBRACKET; }
-"{"             { return T_LCBRACKET; }
-"}"             { return T_RCBRACKET; }
-
-"*"             { return T_TIMES; }
-"+"             { return T_PLUS; }
-"/"             { return T_DIVIDE; }
-"-"             { return T_MINUS; }
-"%"             { return T_MODULO; }
-
-">>"			      { return T_RIGHT_OP; }
-"<<"			      { return T_LEFT_OP; }
-"++"			      { return T_INC_OP; }
-"--"			      { return T_DEC_OP; }
-
-"="             { return T_ASSIGNMENT; }
-
-";"             { return T_SEMICOLON; }
-","             { return(','); }
+"int"           { return(T_INT); }
+"return"        { return(T_RETURN); }
+"if"			      { return(T_IF); }
+"else"			    { return(T_ELSE); }
+"while"			    { return(T_WHILE); }
+"for"			      { return(T_FOR); }
+"sizeof"        { return(T_SIZEOF)}
 
 {L}({L}|{D})*   { yylval.string = new std::string(yytext); return IDENTIFIER; }
 {D}+            { yylval.number = atoi(yytext); return INT_LITERALS; }
 
+"*"             { return('*'); }
+"+"             { return('+'); }
+"/"             { return('/'); }
+"-"             { return('-'); }
+"%"             { return('%'); }
 
-[ \t\r\n]+		{;}
+"="             { return('='); }
+
+"&"		    	{ return('&'); }
+"!"		    	{ return('!'); }
+"<"		    	{ return('<'); }
+">"		    	{ return('>'); }
+"?"		    	{ return('?'); }
+"^"		    	{ return('^'); }
+"|"		    	{ return('|'); }
+
+"&&"			{ return(AND_OP); }
+"||"			{ return(OR_OP); }
+"<="			{ return(LE_OP); }
+">="			{ return(GE_OP); }
+"=="			{ return(EQ_OP); }
+"!="			{ return(NE_OP); }
+
+">>"			      { return(T_RIGHT_OP); }
+"<<"			      { return(T_LEFT_OP); }
+"++"			      { return(T_INC_OP); }
+"--"			      { return(T_DEC_OP); }
+
+"("		    	    { return('('); }
+")"		    	    { return(')'); }
+"{"             { return('{'); }
+"}"             { return('}'); }
+
+";"             { return(';'); }
+","             { return(','); }
+"."		    	    { return('.'); }
+
+[ \t\r\n]+		{ }
 
 .               { fprintf(stderr, "Invalid token\n"); exit(1); }
 %%

@@ -42,3 +42,11 @@
 - Problem is that when calculating required stack size at start of function, don't take into account any extra size needed for the extra arguments stored in the stack, so local variables can start to get overwritten due to insufficient stack size
 - Handling this will mean adding a check to see if there is a function call, and increasing the size appropriately - implmenting this is long ngl - TODO
 - Changed tests a bit, now `test.sh` take in an argument for the test folder - `/compiler_tests` or `/custom_tests` and the output is cleaned up a lot, with proper folder structure to make it easier to track down tests. `test_single.sh` takes in a relative path from `/custom_tests` for a single test to execute.
+- Need to consider callee-saved registers. Ex `int i = f() + g();` s1 register is used to store the return value from function f temporarily while g is being called.
+
+**12/09/2023** Arithmetic + logic operations
+- Changed lexer to make tokens more clear + simpler. Extended parser to support the operations + statements we are trying to cover next.
+- Seems like there will be lots of repeated code in setting up the registers with correct info before actually doing the op - which is pretty much one line most of the time. Might implement some kind of base class for these binary operations to reduce this repetition.
+- Implemented base class BinaryOperations, which has prepLeft and prepRight methods, which should take care of loading the operands into the correct registers. Also made in anticipation that function calls in operands will also change implementation, so having these inherited methods should make it a lot quicker when refactoring in the future.
+- Removed the "optimisation" in the arithmetic ops that was there earlier - which was freeing the destReg between the setting up the left and right operands. Was very naive and didn't actually work as expected, will try find another way but its rough.
+- This made it a lot faster in implementing the rest of the operators - arithmetic and logic. All but LogicalAnd and LogicalOr left, which will take some time - special cases which have some jumps etc.

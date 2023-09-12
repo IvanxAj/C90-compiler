@@ -32,13 +32,15 @@
  /* ----------------------------------------------------------          Tokens           -------------------------------------------------------------- */
 
  // Arithmetic operators
-%token T_TIMES T_DIVIDE T_PLUS T_MINUS T_MODULO T_LEFT_OP T_RIGHT_OP T_INC_OP T_DEC_OP
- // Character Operators
-%token T_LBRACKET T_RBRACKET T_LCBRACKET T_RCBRACKET T_SEMICOLON T_ASSIGNMENT
+%token T_LEFT_OP T_RIGHT_OP T_INC_OP T_DEC_OP
+ // Comparison Operators
+%token AND_OP OR_OP LE_OP GE_OP EQ_OP NE_OP
  // Types operators
-%token T_INT
+%token T_INT T_SIZEOF
  // Control flow operators
 %token T_RETURN
+// Conditional statements
+%token T_IF T_ELSE T_WHILE T_FOR
  // Stuff
 %token IDENTIFIER INT_LITERALS
 
@@ -51,8 +53,11 @@
 
 %type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration
 %type <base_statement> statement expression_statement jump_statement compound_statement
-%type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer multiplicative_expression
-%type <base_expression> additive_expression shift_expression
+%type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
+%type <base_expression> additive_expression multiplicative_expression shift_expression
+
+%type <base_expression> conditional_expression logical_or_expression logical_and_expression inclusive_or_expression
+%type <base_expression> exclusive_or_expression relational_expression and_expression equality_expression
 
 %type <number> INT_LITERALS
 %type <string> IDENTIFIER
@@ -81,7 +86,7 @@ declaration_list
 	;
 
 declaration
-	: declaration_specifier init_declarator T_SEMICOLON     { $$ = new Declaration($1, $2); }
+	: declaration_specifier init_declarator ';'     { $$ = new Declaration($1, $2); }
 	;
 
 
@@ -101,7 +106,7 @@ type_specifier
 
 init_declarator
 	: declarator                                { $$ = new Init_Declarator($1); }
-	| declarator T_ASSIGNMENT initializer       { $$ = new Init_Declarator($1, $3); }
+	| declarator '=' initializer       { $$ = new Init_Declarator($1, $3); }
 	;
 
  /* name of stuff (variable / function etc) */
@@ -112,9 +117,9 @@ declarator
 
 // update to use FunctionDeclarator
 direct_declarator
-    : IDENTIFIER                                                { $$ = new Declarator(*$1); delete $1; }
-    | direct_declarator T_LBRACKET T_RBRACKET                   { $$ = new FuncDeclarator($1); }
-    | direct_declarator T_LBRACKET parameter_list T_RBRACKET    { $$ = new FuncDeclarator($1, $3); }
+    : IDENTIFIER                                    { $$ = new Declarator(*$1); delete $1; }
+    | direct_declarator '(' ')'                     { $$ = new FuncDeclarator($1); }
+    | direct_declarator '(' parameter_list ')'      { $$ = new FuncDeclarator($1, $3); }
     ;
 
 parameter_list
@@ -132,9 +137,9 @@ initializer
 	;
 
 compound_statement
-    : T_LCBRACKET statement_list T_RCBRACKET                        { $$ = new CompoundStatement($2, nullptr); }
-    | T_LCBRACKET declaration_list T_RCBRACKET                      { $$ = new CompoundStatement(nullptr, $2); }
-    | T_LCBRACKET declaration_list statement_list T_RCBRACKET       { $$ = new CompoundStatement($3, $2);      }
+    : '{' statement_list '}'                        { $$ = new CompoundStatement($2, nullptr); }
+    | '{' declaration_list '}'                      { $$ = new CompoundStatement(nullptr, $2); }
+    | '{' declaration_list statement_list '}'       { $$ = new CompoundStatement($3, $2);      }
     /* : T_LCBRACKET T_RCBRACKET                   { scope stuff } */
     ;
 
@@ -151,12 +156,12 @@ statement
     ;
 
 expression_statement
-    : T_SEMICOLON               {}
-    | expression T_SEMICOLON    { $$ = new ExpressionStatement($1); }
+    : ';'               { }
+    | expression ';'    { $$ = new ExpressionStatement($1); }
     ;
 
 jump_statement
-    : T_RETURN expression T_SEMICOLON   { $$ = new Return($2); }
+    : T_RETURN expression ';'       { $$ = new Return($2); }
     ;
 
 expression
@@ -164,31 +169,78 @@ expression
     ;
 
 assignment_expression
-    : shift_expression                                      { $$ = $1; }
-    | shift_expression T_ASSIGNMENT assignment_expression   { $$ = new Assignment($1, $3); }
+    : conditional_expression                              { $$ = $1; }
+    | conditional_expression '=' assignment_expression    { $$ = new Assignment($1, $3); }
     ;
+
+conditional_expression
+	: logical_or_expression { $$ = $1;}
+	;
+
+logical_or_expression
+	: logical_and_expression { $$ = $1;}
+	| logical_or_expression OR_OP logical_and_expression /* { $$ = new LogicalOr($1, $3);} */
+	;
+
+logical_and_expression
+	: inclusive_or_expression { $$ = $1;}
+	| logical_and_expression AND_OP inclusive_or_expression /* { $$ = new LogicalAnd($1, $3);} */
+	;
+
+inclusive_or_expression
+	: exclusive_or_expression { $$ = $1;}
+	| inclusive_or_expression '|' exclusive_or_expression   { $$ = new BitwiseOr($1, $3); }
+	;
+
+exclusive_or_expression
+	: and_expression { $$ = $1;}
+	| exclusive_or_expression '^' and_expression    { $$ = new BitwiseXor($1, $3);}
+	;
+
+and_expression
+	: equality_expression { $$ = $1;}
+	| and_expression '&' equality_expression    { $$ = new BitwiseAnd($1, $3);}
+	;
+
+equality_expression
+	: relational_expression { $$ = $1;}
+	| equality_expression EQ_OP relational_expression { $$ = new Equal($1, $3);}
+	| equality_expression NE_OP relational_expression { $$ = new NotEqual($1, $3);}
+	;
+
+relational_expression
+	: shift_expression                              { $$ = $1;}
+	| relational_expression '<' shift_expression    { $$ = new LessThan($1, $3);}
+	| relational_expression '>' shift_expression    { $$ = new GreaterThan($1, $3);}
+	| relational_expression LE_OP shift_expression  { $$ = new LessThanEqual($1, $3); }
+	| relational_expression GE_OP shift_expression  { $$ = new GreaterThanEqual($1, $3); }
+	;
 
 shift_expression
 	: additive_expression                               { $$ = $1; }
-	| shift_expression T_LEFT_OP additive_expression
-	| shift_expression T_RIGHT_OP additive_expression
+	| shift_expression T_LEFT_OP additive_expression    { $$ = new LeftShift($1, $3); }
+	| shift_expression T_RIGHT_OP additive_expression   { $$ = new RightShift($1, $3); }
 	;
 
 additive_expression
-	: multiplicative_expression                                 { $$ = $1; }
-	| additive_expression T_PLUS multiplicative_expression      { $$ = new Addition($1, $3); }
-	| additive_expression T_MINUS multiplicative_expression     { $$ = new Subtraction($1, $3); }
+	: multiplicative_expression                             { $$ = $1; }
+	| additive_expression '+' multiplicative_expression     { $$ = new Addition($1, $3); }
+	| additive_expression '-' multiplicative_expression     { $$ = new Subtraction($1, $3); }
 	;
 
 multiplicative_expression
-	: unary_expression                                      { $$ = $1; }
-	| multiplicative_expression T_TIMES unary_expression
-	| multiplicative_expression T_DIVIDE unary_expression
-	| multiplicative_expression T_MODULO unary_expression
+	: unary_expression                                  { $$ = $1; }
+	| multiplicative_expression '*' unary_expression    { $$ = new Multiplication($1, $3); }
+	| multiplicative_expression '/' unary_expression    { $$ = new Division($1, $3); }
+	| multiplicative_expression '%' unary_expression    { $$ = new Modulus($1, $3); }
 	;
 
 unary_expression
-    : postfix_expression    { $$ = $1; }
+    : postfix_expression                { $$ = $1; }
+    | T_INC_OP unary_expression
+    | T_DEC_OP unary_expression
+    | T_SIZEOF unary_expression         { $$ = new SizeOf($2);}
+	| T_SIZEOF '(' type_specifier ')'   { $$ = new SizeOf($3);}
     ;
 
 argument_expression_list
@@ -197,9 +249,9 @@ argument_expression_list
 	;
 
 postfix_expression
-    : primary_expression                            { $$ = $1; }
-    | postfix_expression T_LBRACKET T_RBRACKET      { $$ = new FunctionCall($1); }
-    | postfix_expression T_LBRACKET argument_expression_list T_RBRACKET { $$ = new FunctionCall($1, $3);}
+    : primary_expression                                        { $$ = $1; }
+    | postfix_expression '(' ')'                                { $$ = new FunctionCall($1); }
+    | postfix_expression '(' argument_expression_list ')'       { $$ = new FunctionCall($1, $3);}
     ;
 
 primary_expression

@@ -31,7 +31,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // TODO: uncomment the below lines if you're using Flex/Bison.
     // This configures Flex to look at sourcePath instead of
     // reading from stdin.
     yyin = fopen(sourcePath.c_str(), "r");
@@ -45,16 +44,16 @@ int main(int argc, char **argv)
     std::ofstream output;
     output.open(outputPath, std::ios::trunc);
 
-
     Context context;
 
     const Node *root = parseAST();
 
-    // compile somehow
+    // compile
     root->compile(output, context, 10);
 
     delete root;
 
     output.close();
+
     return 0;
 }
