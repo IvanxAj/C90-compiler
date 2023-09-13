@@ -9,7 +9,7 @@ Declaration::~Declaration() {
 }
 
 int Declaration::getSize() const {
-    return typeSizes[static_cast<int>(type)];
+    return typeSizes.at(type);
 }
 
 void Declaration::compile(std::ostream& os, Context& context, int destReg) const {

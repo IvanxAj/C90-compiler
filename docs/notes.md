@@ -50,3 +50,8 @@
 - Implemented base class BinaryOperations, which has prepLeft and prepRight methods, which should take care of loading the operands into the correct registers. Also made in anticipation that function calls in operands will also change implementation, so having these inherited methods should make it a lot quicker when refactoring in the future.
 - Removed the "optimisation" in the arithmetic ops that was there earlier - which was freeing the destReg between the setting up the left and right operands. Was very naive and didn't actually work as expected, will try find another way but its rough.
 - This made it a lot faster in implementing the rest of the operators - arithmetic and logic. All but LogicalAnd and LogicalOr left, which will take some time - special cases which have some jumps etc.
+
+**13/09/2023** Control flow - while and if/else
+- Added if else - doesn't contain optimisations for true or false within condition - TODO fix reg allocation
+- Added while impentation, need to find a way to handle empty compound statements properly - ideally output a `nop`
+- Haven't really thought about how nested stuff works.

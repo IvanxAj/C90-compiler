@@ -39,8 +39,6 @@ void CompoundStatement::compile(std::ostream& os, Context& context, int destReg)
         context.newScope();
     }
 
-    std::cerr << "Made new scope" << std::endl;
-
     if (declaration_list) {
         for (auto node: *declaration_list) {
             node->compile(os, context, destReg);

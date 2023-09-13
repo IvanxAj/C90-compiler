@@ -7,6 +7,7 @@ class CompoundStatement
     : public BaseStatement
 {
 public:
+    CompoundStatement();
     CompoundStatement(List_Ptr _statement_list = nullptr, List_Ptr _declaration_list = nullptr);
 
     ~CompoundStatement();

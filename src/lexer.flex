@@ -14,7 +14,7 @@ L               [a-zA-Z_]
 %%
 
 "int"           { return(T_INT); }
-"char"           { return(T_CHAR); }
+"char"          { return(T_CHAR); }
 "return"        { return(T_RETURN); }
 "if"			      { return(T_IF); }
 "else"			    { return(T_ELSE); }

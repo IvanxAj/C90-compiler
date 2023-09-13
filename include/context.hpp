@@ -33,7 +33,19 @@ enum class Specifier
 };
 
 // defines the size of all types - currently only int, char and void
-constexpr std::array<int, 3> typeSizes = {4, 1, 0};
+// constexpr std::array<int, 3> typeSizes = {
+//     4,   // _int
+//     1,   // _char
+//     0,   // _void
+// };
+
+static int unique = 0 ;
+
+const std::unordered_map<Specifier, int> typeSizes = {
+    {Specifier::_int,   4},
+    {Specifier::_char,  1},
+    {Specifier::_void,  0},
+};
 
 struct Variable
 {
@@ -135,14 +147,14 @@ struct Context
     }
 
     int addVar(const std::string& name, Specifier type) {
-        int varSize = typeSizes[static_cast<int>(type)];
+        int varSize = typeSizes.at(type);
         local_var_offset -= varSize;
         scopes.back().addLocalVar(name, type, local_var_offset);
         return local_var_offset;
     }
 
     int addParam(const std::string& name, Specifier type, int param_index) {
-        int param_size = typeSizes[static_cast<int>(type)];
+        int param_size = typeSizes.at(type);
         if (param_index < 8) {
             param_offset -= param_size;
             scopes.back().addLocalVar(name, type, param_offset);
@@ -221,6 +233,10 @@ struct Context
                 std::cerr << "  Variable: " << name << ", Type: " << type << ", Offset: " << offset << std::endl;
             }
         }
+    }
+
+    inline std::string makeLabel (std::string label){
+        return label + std::to_string(unique++);
     }
 };
 

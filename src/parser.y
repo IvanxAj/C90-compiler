@@ -106,7 +106,7 @@ type_specifier
     ;
 
 init_declarator
-	: declarator                                { $$ = new Init_Declarator($1); }
+	: declarator                       { $$ = new Init_Declarator($1); }
 	| declarator '=' initializer       { $$ = new Init_Declarator($1, $3); }
 	;
 
@@ -141,7 +141,7 @@ compound_statement
     : '{' statement_list '}'                        { $$ = new CompoundStatement($2, nullptr); }
     | '{' declaration_list '}'                      { $$ = new CompoundStatement(nullptr, $2); }
     | '{' declaration_list statement_list '}'       { $$ = new CompoundStatement($3, $2);      }
-    /* : T_LCBRACKET T_RCBRACKET                   { scope stuff } */
+    | '{' '}'                                       { $$ = new CompoundStatement(nullptr);     }
     ;
 
  /* Assuming only one statement */
@@ -164,13 +164,13 @@ expression_statement
     ;
 
 selection_statement
-	: T_IF '(' expression ')' statement                     /* { $$ = new IfElse($3, $5);} */
-	| T_IF '(' expression ')' statement T_ELSE statement    /* { $$ = new IfElse($3, $5, $7);} */
+	: T_IF '(' expression ')' statement                     { $$ = new IfElse($3, $5);}
+	| T_IF '(' expression ')' statement T_ELSE statement    { $$ = new IfElse($3, $5, $7);}
 	;
 
 iteration_statement
-	: T_WHILE '(' expression ')' statement                                              { $$ = new While($3, $5);}
-	| T_DO statement T_WHILE '(' expression ')' ';'                                     { $$ = new While($5, $2);}
+	: T_WHILE '(' expression ')' statement                                              { $$ = new While($3, $5); }
+	| T_DO statement T_WHILE '(' expression ')' ';'                                     { $$ = new While($5, $2); }
 	/* | T_FOR '(' expression_statement expression_statement ')' statement                 { $$ = new For($3, $4, $6);}
 	| T_FOR '(' expression_statement expression_statement expression ')' statement      { $$ = new For($3, $4, $5, $7);} */
 	;

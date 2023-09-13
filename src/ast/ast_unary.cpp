@@ -71,8 +71,7 @@ void SizeOf::compile(std::ostream& os, Context& context, int destReg) const {
 
     // At this point, 'type' should be valid either from the constructor or from the expression.
 
-    int size = typeSizes[static_cast<int>(var_type)];
+    int size = typeSizes.at(var_type);
     // Generate the load immediate (li) instruction to put the size in the destination register.
     os << "li " << context.getMnemonic(destReg) << ", " << size << std::endl;
 }
-

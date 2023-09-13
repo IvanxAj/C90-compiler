@@ -20,6 +20,8 @@
 #include "ast/ast_arithmetic.hpp"
 #include "ast/ast_logical.hpp"
 #include "ast/ast_unary.hpp"
+#include "ast/ast_selection.hpp"
+#include "ast/ast_while.hpp"
 
 #include "context.hpp"
 

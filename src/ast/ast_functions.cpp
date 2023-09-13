@@ -111,7 +111,7 @@ ParamDeclaration::~ParamDeclaration() {
 }
 
 int ParamDeclaration::getSize() const {
-    return typeSizes[static_cast<int>(type)];
+    return typeSizes.at(type);
 }
 
 void ParamDeclaration::compile(std::ostream& os, Context& context, int destReg) const {
