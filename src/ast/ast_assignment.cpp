@@ -10,7 +10,7 @@ Assignment::~Assignment() {
 
 void Assignment::compile(std::ostream& os, Context& context, int destReg) const {
     std::string var_name = expr1->getIdentifier();
-    int offset = context.getVar(var_name);
+    int offset = context.getVarOffset(var_name);
 
     int reg = context.allocateReg();
     context.useReg(reg);

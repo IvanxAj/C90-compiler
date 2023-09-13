@@ -28,7 +28,7 @@ void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) c
         // evaluate initialiser expression e.g. (3+4) = 7
         initialiser->compile(os, context, reg);
 
-        int var_offset = context.getVar(var_name);
+        int var_offset = context.getVarOffset(var_name);
         os << "sw " << context.getMnemonic(reg) << ", " << var_offset << "(s0)" << std::endl;
 
         context.freeReg(reg);

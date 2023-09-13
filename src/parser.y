@@ -36,11 +36,11 @@
  // Comparison Operators
 %token AND_OP OR_OP LE_OP GE_OP EQ_OP NE_OP
  // Types operators
-%token T_INT T_SIZEOF
+%token T_INT T_CHAR T_SIZEOF
  // Control flow operators
 %token T_RETURN
 // Conditional statements
-%token T_IF T_ELSE T_WHILE T_FOR
+%token T_IF T_ELSE T_WHILE T_FOR T_DO
  // Stuff
 %token IDENTIFIER INT_LITERALS
 
@@ -52,7 +52,7 @@
 %type <node_list> translation_unit statement_list declaration_list parameter_list argument_expression_list
 
 %type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration
-%type <base_statement> statement expression_statement jump_statement compound_statement
+%type <base_statement> statement expression_statement jump_statement compound_statement selection_statement iteration_statement
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
 %type <base_expression> additive_expression multiplicative_expression shift_expression
 
@@ -101,7 +101,8 @@ declaration_specifier
 
  /*$$ = new PrimitiveType(INT);*/
 type_specifier
-    : T_INT { $$ = Specifier::_int; }
+    : T_INT     { $$ = Specifier::_int; }
+    | T_CHAR    { $$ = Specifier::_char; }
     ;
 
 init_declarator
@@ -153,12 +154,26 @@ statement
     : jump_statement            { $$ = $1; }
     | compound_statement        { $$ = $1; }
     | expression_statement      { $$ = $1; }
+    | selection_statement { $$ = $1; }
+	| iteration_statement { $$ = $1; }
     ;
 
 expression_statement
     : ';'               { }
     | expression ';'    { $$ = new ExpressionStatement($1); }
     ;
+
+selection_statement
+	: T_IF '(' expression ')' statement                     /* { $$ = new IfElse($3, $5);} */
+	| T_IF '(' expression ')' statement T_ELSE statement    /* { $$ = new IfElse($3, $5, $7);} */
+	;
+
+iteration_statement
+	: T_WHILE '(' expression ')' statement                                              { $$ = new While($3, $5);}
+	| T_DO statement T_WHILE '(' expression ')' ';'                                     { $$ = new While($5, $2);}
+	/* | T_FOR '(' expression_statement expression_statement ')' statement                 { $$ = new For($3, $4, $6);}
+	| T_FOR '(' expression_statement expression_statement expression ')' statement      { $$ = new For($3, $4, $5, $7);} */
+	;
 
 jump_statement
     : T_RETURN expression ';'       { $$ = new Return($2); }
@@ -237,8 +252,8 @@ multiplicative_expression
 
 unary_expression
     : postfix_expression                { $$ = $1; }
-    | T_INC_OP unary_expression
-    | T_DEC_OP unary_expression
+    | T_INC_OP unary_expression         { $$ = new Increment($2); }
+    | T_DEC_OP unary_expression         { $$ = new Decrement($2); }
     | T_SIZEOF unary_expression         { $$ = new SizeOf($2);}
 	| T_SIZEOF '(' type_specifier ')'   { $$ = new SizeOf($3);}
     ;
@@ -257,6 +272,7 @@ postfix_expression
 primary_expression
     : IDENTIFIER          { $$ = new Identifier(*$1); delete $1; }
     | INT_LITERALS        { $$ = new Integer($1); }
+    | '(' expression ')'  { $$ = $2; }
 	;
 
 %%

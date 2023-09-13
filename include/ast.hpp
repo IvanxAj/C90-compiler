@@ -19,6 +19,7 @@
 #include "ast/ast_binary_operation.hpp"
 #include "ast/ast_arithmetic.hpp"
 #include "ast/ast_logical.hpp"
+#include "ast/ast_unary.hpp"
 
 #include "context.hpp"
 

@@ -28,7 +28,8 @@ enum class Specifier
 {
     _int,
     _char,
-    _void
+    _void,
+    INVALID_TYPE = -1,
 };
 
 // defines the size of all types - currently only int, char and void
@@ -55,9 +56,9 @@ struct Scope
         bindings[name] = Variable(type, offset);
     }
 
-    int getLocalVar(const std::string& name) const {
+    Variable getLocalVar(const std::string& name) const {
         auto it = bindings.find(name);
-        return it == bindings.end() ? -1 : it->second.offset;
+        return it == bindings.end() ? Variable(Specifier::INVALID_TYPE, -1) : it->second;
     }
 
 };
@@ -114,14 +115,23 @@ struct Context
         return -1;
     }
 
-    int getVar(const std::string& name) {
+    int getVarOffset(const std::string& name) {
         for (int i = scopes.size() - 1; i >= 0; --i) {
-            int offset = scopes[i].getLocalVar(name);
+            int offset = scopes[i].getLocalVar(name).offset;
             if (offset != -1) {
                 return offset;
             }
         }
         return -1;
+    }
+
+    Specifier getVarType(const std::string& name) {
+        for (int i = scopes.size() - 1; i >= 0; --i) {
+            Specifier type = scopes[i].getLocalVar(name).type;
+            return type;
+        }
+        // will return INVALID _TYPE if variable doesnt exist anyway
+        return Specifier::INVALID_TYPE;
     }
 
     int addVar(const std::string& name, Specifier type) {

@@ -24,7 +24,7 @@ Identifier::Identifier(const std::string& _name): name(_name) {}
 
 void Identifier::compile(std::ostream& os, Context& context, int destReg) const {
 
-    os << "lw " << context.getMnemonic(destReg) << ", " << context.getVar(name) << "(s0)" << std::endl;
+    os << "lw " << context.getMnemonic(destReg) << ", " << context.getVarOffset(name) << "(s0)" << std::endl;
 
 }
 
