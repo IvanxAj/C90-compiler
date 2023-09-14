@@ -10,22 +10,24 @@ IfElse::IfElse(BaseExpression* _condition, BaseStatement* _statements1)
 
 void IfElse::compile(std::ostream& os, Context& context, int destReg) const {
 
-        // int reg = context.allocateReg();
-        context.useReg(destReg);
-        condition->compile(os, context, destReg);
-
         std::string label1 = context.makeLabel(".L");
-        os << "beq "  <<  context.getMnemonic(destReg) << "," << context.getMnemonic(0) << "," << label1 << std::endl;
+
+        // evaluate condition
+        int cond_reg = context.allocateReg();
+        context.useReg(destReg);
+        condition->compile(os, context, cond_reg);
+        os << "beq "  <<  context.getMnemonic(cond_reg) << "," << context.getMnemonic(0) << "," << label1 << std::endl;
 
         statements1->compile(os, context, destReg);
 
-        //  handle else - check if it exists
+        //  no else
         if (statements2 == nullptr) {
              os << label1 << ":" << std::endl;
-             context.freeReg(destReg);
+             context.freeReg(cond_reg);
              return;
         }
 
+        // else body
         std::string label2 = context.makeLabel(".L");
         os << "j " << label2 << std::endl;
 
@@ -33,7 +35,7 @@ void IfElse::compile(std::ostream& os, Context& context, int destReg) const {
         statements2->compile(os,context,destReg);
         os << label2 << ":" << std::endl;
 
-        context.freeReg(destReg);
+        context.freeReg(cond_reg);
 };
 
 

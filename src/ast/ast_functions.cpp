@@ -15,6 +15,7 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     os << ".globl " << funcDeclarator->getIdentifier() << std::endl;
     os << funcDeclarator->getIdentifier() << ":" << std::endl;
 
+    context.ret_label = context.makeLabel(".FUNC_RETURN");
     context.resetOffsets();
     // call getSize on its children nodes - want to return size required by: local_vars, parameters
     // call calcStackSizez(local_var_size, param_size) - hardcode to 32 bytes for now
@@ -37,6 +38,10 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
 
     // handle statements
     statements->compile(os, context, destReg);
+
+    // handle return
+    os << context.ret_label << ":" << std::endl;
+    os << "mv a0, a5" << std::endl;
 
     // tear down stack frame
     os << "lw ra, "<< stack_size - 4 << "(sp)" << std::endl;

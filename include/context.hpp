@@ -32,15 +32,6 @@ enum class Specifier
     INVALID_TYPE = -1,
 };
 
-// defines the size of all types - currently only int, char and void
-// constexpr std::array<int, 3> typeSizes = {
-//     4,   // _int
-//     1,   // _char
-//     0,   // _void
-// };
-
-static int unique = 0 ;
-
 const std::unordered_map<Specifier, int> typeSizes = {
     {Specifier::_int,   4},
     {Specifier::_char,  1},
@@ -106,13 +97,17 @@ struct Context
 
     // flags
     bool isFunctionDef = 0;
+    std::string ret_label;
 
     std::vector<Scope> scopes;
+    std::vector<std::pair<std::string, std::string>> loopLabels;
 
     // Add a global scope on constructor
     Context() {
         scopes.push_back(Scope());
     }
+
+    /* ----------------------------------HANDLE REGS------------------------------------------- */
 
     void useReg(int i) { usedRegs[i] = 1; }
     void freeReg(int i) { usedRegs[i] = 0; }
@@ -126,6 +121,8 @@ struct Context
         }
         return -1;
     }
+
+    /* ----------------------------------HANDLE VARS------------------------------------------- */
 
     int getVarOffset(const std::string& name) {
         for (int i = scopes.size() - 1; i >= 0; --i) {
@@ -167,6 +164,8 @@ struct Context
         return 1;
     }
 
+    /* ----------------------------------HANDLE SCOPES------------------------------------------- */
+
     // Create a new scope by adding a new stack frame - defaulted
     void newScope() {
         scopes.emplace_back();
@@ -185,6 +184,34 @@ struct Context
         param_offset_excess = 0;
         frame_size = 32;
     }
+
+    /* ----------------------------------HANDLE LOOPS------------------------------------------- */
+
+    void newLoop(const std::string& start_label, const std::string& end_label) {
+        loopLabels.push_back({start_label, end_label});
+    }
+
+    void exitLoop() {
+        if (!loopLabels.empty()) {
+            loopLabels.pop_back();
+        }
+    }
+
+    std::string getCurrentLoopStart() {
+        if (!loopLabels.empty()) {
+            return loopLabels.back().first;
+        }
+        return "";
+    }
+
+    std::string getCurrentLoopEnd() {
+        if (!loopLabels.empty()) {
+            return loopLabels.back().second;
+        }
+        return "";
+    }
+
+    /* ----------------------------------UTILITY------------------------------------------- */
 
     int calculateStackSize(int totalLocalVarBytes, int totalParamBytes) {
         int stackSize = 16;  // Minimum stack size
@@ -236,6 +263,7 @@ struct Context
     }
 
     inline std::string makeLabel (std::string label){
+        static int unique = 0 ;
         return label + std::to_string(unique++);
     }
 };

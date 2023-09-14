@@ -2,7 +2,11 @@
 
 
 CompoundStatement::CompoundStatement(List_Ptr _statement_list, List_Ptr _declaration_list)
-    : statement_list(_statement_list), declaration_list(_declaration_list) {}
+    : statement_list(_statement_list), declaration_list(_declaration_list) {
+
+    // If both lists null, set isEmpty flag
+    isEmpty = (statement_list == nullptr && declaration_list == nullptr);
+}
 
 CompoundStatement::~CompoundStatement() {
     if (statement_list) {
@@ -32,6 +36,10 @@ int CompoundStatement::getSize() const {
 
 // handle scope stuff as well
 void CompoundStatement::compile(std::ostream& os, Context& context, int destReg) const {
+
+    if (isEmpty) {
+        return;
+    }
 
     if (context.isFunctionDef) {
         context.isFunctionDef = 0;
@@ -66,23 +74,3 @@ ExpressionStatement::~ExpressionStatement() {
 void ExpressionStatement::compile(std::ostream& os, Context& context, int destReg) const {
     expression->compile(os, context, destReg);
 }
-
-
-// Return will contain a single node
-Return::Return(BaseExpression* _expression): expression(_expression) {}
-
-Return::~Return() {
-    delete expression;
-}
-// compile value of expression into correct register AO = 10
-void Return::compile(std::ostream& os, Context& context, int destReg) const {
-
-    int expr_reg = context.allocateReg();
-    expression->compile(os,context, 15);
-
-    // os << "mv a0, x" << expr_reg << std::endl;
-
-    // TODO maybe not hard code a5
-    os << "mv a0, a5" << std::endl;
-    // os << "jr ra" << std::endl;
-};

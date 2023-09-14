@@ -55,3 +55,8 @@
 - Added if else - doesn't contain optimisations for true or false within condition - TODO fix reg allocation
 - Added while impentation, need to find a way to handle empty compound statements properly - ideally output a `nop`
 - Haven't really thought about how nested stuff works.
+
+**14/09/2023**
+- Was going through some of the compiler_tests and the if_true case wasn't passing. Looking at the assembly, the way we handled `return` was just wrong this entire time, didn't really get the chance to check it, since we didn't support selection until now. Basically if we have multiple returns, we want to jump to the end (function epilogue) whenever the return actually goes through, but all this time we just were moving stuff into a0 for fun thinking that was the return.
+- To fix this, added a ret_label in context, which is created in FunctionDefinition, and `return` jumps to this label. This label is output before the function epilogue - so before the `mv a0, a5` and rest of function clean up - and marks the section of the code I want executed on function return. The `Return` statement is now under a JumpStatement class, which handles all the jump statements, and compiles the expression if it has one into register fixed register `a5` (in preparation of the mv later).
+- Added support for `continue` and `break` which required tracking the current loops' labels. To make it easier, refactored while statement codegen, such that there is a clear start and end label. Context now also has functions to track these labels - support nesting.

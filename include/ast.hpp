@@ -22,6 +22,7 @@
 #include "ast/ast_unary.hpp"
 #include "ast/ast_selection.hpp"
 #include "ast/ast_while.hpp"
+#include "ast/ast_jump_statement.hpp"
 
 #include "context.hpp"
 

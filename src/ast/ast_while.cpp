@@ -10,47 +10,26 @@ While::~While() {
 
 void While::compile(std::ostream& os, Context& context, int destReg) const {
 
+    std::string start_label = context.makeLabel(".WHILE_START");
+    std::string end_label = context.makeLabel(".WHILE_END");
 
+    context.newLoop(start_label, end_label);
 
-    std::string label1 = context.makeLabel(".L");
-    std::string label2 = context.makeLabel(".L");
+    os << start_label << ":" << std::endl;
 
-    os << "j " << label1 << std::endl;
+    // evaluate condition
+    int cond_reg = context.allocateReg();
+    context.useReg(cond_reg);
+    condition->compile(os, context, cond_reg);
+    os << "beq " << context.getMnemonic(cond_reg) << ", " << context.getMnemonic(0) << ", " << end_label << std::endl;
 
-    os << label2 << ":" << std::endl;
-    context.useReg(destReg);
+    // loop body
     statements->compile(os, context, destReg);
-    context.freeReg(destReg);
+    os << "j " << start_label << std::endl;
 
-    os << label1 << ":" << std::endl;
+    // end loop
+    os << end_label << ":" << std::endl;
+    context.freeReg(cond_reg);
 
-    context.useReg(destReg);
-    condition->compile(os, context, destReg);
-    context.freeReg(destReg);
-
-    os << "bne " << context.getMnemonic(destReg) << ", " << context.getMnemonic(0) << ", " << label2 << std::endl;
-
+    context.exitLoop();
 };
-
-/*
-main:
-        addi    sp,sp,-32
-        sw      s0,28(sp)
-        addi    s0,sp,32
-        li      a5,1
-        sw      a5,-20(s0)
-        j       .L2
-.L3:
-        li      a5,5
-        sw      a5,-20(s0)
-.L2:
-        lw      a5,-20(s0)
-        bne     a5,zero,.L3
-        nop
-        mv      a0,a5
-        lw      s0,28(sp)
-        addi    sp,sp,32
-        jr      ra
-
-
-*/
