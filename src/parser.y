@@ -36,7 +36,7 @@
  // Comparison Operators
 %token AND_OP OR_OP LE_OP GE_OP EQ_OP NE_OP
  // Types operators
-%token T_INT T_CHAR T_SIZEOF
+%token T_INT T_CHAR T_SIZEOF T_UNSIGNED T_VOID
  // Control flow operators
 %token T_RETURN T_BREAK T_CONTINUE
 // Conditional statements
@@ -101,8 +101,10 @@ declaration_specifier
 
  /*$$ = new PrimitiveType(INT);*/
 type_specifier
-    : T_INT     { $$ = Specifier::_int; }
-    | T_CHAR    { $$ = Specifier::_char; }
+    : T_INT         { $$ = Specifier::_int; }
+    | T_CHAR        { $$ = Specifier::_char; }
+    | T_VOID        { $$ = Specifier::_void; }
+	| T_UNSIGNED    { $$ = Specifier::_unsigned; }
     ;
 
 init_declarator
@@ -154,8 +156,8 @@ statement
     : jump_statement            { $$ = $1; }
     | compound_statement        { $$ = $1; }
     | expression_statement      { $$ = $1; }
-    | selection_statement { $$ = $1; }
-	| iteration_statement { $$ = $1; }
+    | selection_statement       { $$ = $1; }
+	| iteration_statement       { $$ = $1; }
     ;
 
 expression_statement
@@ -171,8 +173,8 @@ selection_statement
 
 iteration_statement
 	: T_WHILE '(' expression ')' statement                                              { $$ = new While($3, $5); }
-	/* | T_FOR '(' expression_statement expression_statement ')' statement                 { $$ = new For($3, $4, $6);}
-	| T_FOR '(' expression_statement expression_statement expression ')' statement      { $$ = new For($3, $4, $5, $7);} */
+	| T_FOR '(' expression_statement expression_statement ')' statement                 { $$ = new For($3, $4, $6);}
+	| T_FOR '(' expression_statement expression_statement expression ')' statement      { $$ = new For($3, $4, $5, $7);}
 	;
 
 jump_statement
@@ -271,6 +273,8 @@ postfix_expression
     : primary_expression                                        { $$ = $1; }
     | postfix_expression '(' ')'                                { $$ = new FunctionCall($1); }
     | postfix_expression '(' argument_expression_list ')'       { $$ = new FunctionCall($1, $3);}
+    | postfix_expression T_INC_OP                               { $$ = new Increment($1);}
+	| postfix_expression T_DEC_OP                               { $$ = new Decrement($1);}
     ;
 
 primary_expression

@@ -29,6 +29,7 @@ enum class Specifier
     _int,
     _char,
     _void,
+    _unsigned,
     INVALID_TYPE = -1,
 };
 
@@ -36,6 +37,7 @@ const std::unordered_map<Specifier, int> typeSizes = {
     {Specifier::_int,   4},
     {Specifier::_char,  1},
     {Specifier::_void,  0},
+    {Specifier::_unsigned, 4}
 };
 
 struct Variable

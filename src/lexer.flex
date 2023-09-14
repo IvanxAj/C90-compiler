@@ -19,6 +19,8 @@ L               [a-zA-Z_]
 
 "int"           { return(T_INT); }
 "char"          { return(T_CHAR); }
+"void"          { return(T_VOID); }
+"unsigned"      { return(T_UNSIGNED); }
 "return"        { return(T_RETURN); }
 "if"			      { return(T_IF); }
 "else"			    { return(T_ELSE); }

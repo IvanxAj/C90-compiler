@@ -23,6 +23,7 @@
 #include "ast/ast_selection.hpp"
 #include "ast/ast_while.hpp"
 #include "ast/ast_jump_statement.hpp"
+#include "ast/ast_for.hpp"
 
 #include "context.hpp"
 
