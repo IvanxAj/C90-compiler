@@ -20,7 +20,7 @@ class BaseExpression
 public:
     virtual ~BaseExpression() = default;
     virtual const std::string& getIdentifier();
-
+    virtual FunctionCallInfo getFuncCall() const;
 };
 
 
@@ -31,6 +31,7 @@ public:
 
     virtual ~BaseDeclaration() = default;
     virtual const std::string& getIdentifier();
+    virtual FunctionCallInfo getFuncCall() const;
     virtual int getSize() const;
 
     // ?: if these base classes continue to have the same methods - combine?
@@ -42,5 +43,6 @@ class BaseStatement
 public:
     virtual ~BaseStatement() = default;
     virtual int getSize() const;
+    virtual FunctionCallInfo getFuncCall() const;
 };
 

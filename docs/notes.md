@@ -56,7 +56,27 @@
 - Added while impentation, need to find a way to handle empty compound statements properly - ideally output a `nop`
 - Haven't really thought about how nested stuff works.
 
-**14/09/2023**
+**14/09/2023** Jump statements
 - Was going through some of the compiler_tests and the if_true case wasn't passing. Looking at the assembly, the way we handled `return` was just wrong this entire time, didn't really get the chance to check it, since we didn't support selection until now. Basically if we have multiple returns, we want to jump to the end (function epilogue) whenever the return actually goes through, but all this time we just were moving stuff into a0 for fun thinking that was the return.
 - To fix this, added a ret_label in context, which is created in FunctionDefinition, and `return` jumps to this label. This label is output before the function epilogue - so before the `mv a0, a5` and rest of function clean up - and marks the section of the code I want executed on function return. The `Return` statement is now under a JumpStatement class, which handles all the jump statements, and compiles the expression if it has one into register fixed register `a5` (in preparation of the mv later).
 - Added support for `continue` and `break` which required tracking the current loops' labels. To make it easier, refactored while statement codegen, such that there is a clear start and end label. Context now also has functions to track these labels - support nesting.
+- When doing recursive internal - the recursive call `return n+f(n-1);` really fks us up. Current arithmetic operators don't care if either of operands are function calls, and so set up the registers in either order, currently it's left then right operand. This means the following occurs:
+    ```assembly
+    lw t0, -20(s0)
+    lw t2, -20(s0)
+    li a3,1
+    sub a0, t2, a3
+    call f
+    mv t1,a0
+    lw t0, -29(s0)
+    add a5, t0, t1
+    ```
+    where the `n` is loaded into t0 before the function call, and `add` expects it to still be there after :(. To just pass the test case, easy enough I can just change the operands around to prepRight first, but the problem would still be there. Need to add some kind of way to check if one of the operands are function calls, and handle appropriately.
+
+**15/09/2023** Function call handling
+- Plan is to create a getFunctionCall() virtual method in BaseExpression, and handle implementation in the FunctionCall class, which will then be passed up.
+- Classes that require knowledge of whether there is a function call are: `FunctionDefinition` - store ra or not, and `BinaryOperation` - to save left operand to callee-saved reg.
+- Ideally, I want to check FunctionCall with a simple if, but then it is hard to differentiate between a function call with no args (or less than 8), and a function call with 9 args. Could use -1 for no function call, 0 for <8 args, n for > 8 args - but now gets ugly. Used a FunctionCallInfo struct, that has a boolean + no of extra args.
+- In terms of multiple function calls, don't think I need to care about them, as they will always happen one after the other, maybe have a max comparison for the extra args needed.
+- Problem is... FunctionCall is an expression, and can be found basically anywhere, could even be a part of a declaration eg. `int a = g()`, so that means declaration objects also need to have this virtual method. Tried having it in all 3 base classes and still only just overriding in FunctionCall, but doesn't seem to work. I think I'm just bad with poplymorphism + how dynamic dispatch works. Will keep the functions and struct the same, as ideally it should work, and I manage to get the FuncCallInfo all the way up to FunctionDefinition to handle calls in a better way. Also means that the extra arg counting + stack sie increase doesn't work either.
+- Managed to get BinaryOperations functioning properly when one is a function call, by saving to reg `s1` if there is a function call, and by default we also store and load s1 on the stack in FunctionDefinition too - pls fix at some point.

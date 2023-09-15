@@ -63,6 +63,7 @@ public:
     ~FunctionCall();
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
+    FunctionCallInfo getFuncCall() const override;
 private:
     BaseExpression* id;
     List_Ptr args;

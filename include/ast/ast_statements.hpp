@@ -12,8 +12,7 @@ public:
     ~CompoundStatement();
 
     int getSize() const override;
-
-    // handle scope stuff as well
+    FunctionCallInfo getFuncCall() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 private:
     List_Ptr statement_list;
