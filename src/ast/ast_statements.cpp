@@ -35,43 +35,9 @@ int CompoundStatement::getSize() const {
         }
     }
 
-    if (statement_list) {
-        total_dec_size += getFuncCall().extraArgs * 4; // still hardcode int 4 bytes
-    }
-
     return total_dec_size;
 }
 
-FunctionCallInfo CompoundStatement::getFuncCall() const {
-
-    int max_extra_args = 0;
-    bool hasFunctionCall = false;
-
-    if (statement_list) {
-        for (auto statement : *statement_list) {
-            FunctionCallInfo info = dynamic_cast<const BaseStatement*>(statement)->getFuncCall();
-            if (info.hasFunctionCall) {
-                hasFunctionCall = true;
-                max_extra_args = std::max(max_extra_args, info.extraArgs);
-                std::cerr << "Found function call, has args: " << max_extra_args << std::endl;
-            }
-        }
-    }
-
-    // add for decl_lists
-    if (declaration_list) {
-        for (auto declaration : *declaration_list) {
-            FunctionCallInfo info = dynamic_cast<const BaseDeclaration*>(declaration)->getFuncCall();
-            if (info.hasFunctionCall) {
-                hasFunctionCall = true;
-                max_extra_args = std::max(max_extra_args, info.extraArgs);
-                std::cerr << "Found function call, has args: " << max_extra_args << std::endl;
-            }
-        }
-    }
-    return {hasFunctionCall, max_extra_args};
-
-}
 
 // handle scope stuff as well
 void CompoundStatement::compile(std::ostream& os, Context& context, int destReg) const {
@@ -99,7 +65,7 @@ void CompoundStatement::compile(std::ostream& os, Context& context, int destReg)
         }
     }
 
-    context.debugScope();
+    // context.debugScope();
 
     context.popScope();
 }

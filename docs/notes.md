@@ -52,7 +52,7 @@
 - This made it a lot faster in implementing the rest of the operators - arithmetic and logic. All but LogicalAnd and LogicalOr left, which will take some time - special cases which have some jumps etc.
 
 **13/09/2023** Control flow - while and if/else
-- Added if else - doesn't contain optimisations for true or false within condition - TODO fix reg allocation
+- Added if else - doesn't contain optimisations for true or false within condition ~TODO fix reg allocation~
 - Added while impentation, need to find a way to handle empty compound statements properly - ideally output a `nop`
 - Haven't really thought about how nested stuff works.
 
@@ -74,9 +74,10 @@
     where the `n` is loaded into t0 before the function call, and `add` expects it to still be there after :(. To just pass the test case, easy enough I can just change the operands around to prepRight first, but the problem would still be there. Need to add some kind of way to check if one of the operands are function calls, and handle appropriately.
 
 **15/09/2023** Function call handling
-- Plan is to create a getFunctionCall() virtual method in BaseExpression, and handle implementation in the FunctionCall class, which will then be passed up.
-- Classes that require knowledge of whether there is a function call are: `FunctionDefinition` - store ra or not, and `BinaryOperation` - to save left operand to callee-saved reg.
-- Ideally, I want to check FunctionCall with a simple if, but then it is hard to differentiate between a function call with no args (or less than 8), and a function call with 9 args. Could use -1 for no function call, 0 for <8 args, n for > 8 args - but now gets ugly. Used a FunctionCallInfo struct, that has a boolean + no of extra args.
-- In terms of multiple function calls, don't think I need to care about them, as they will always happen one after the other, maybe have a max comparison for the extra args needed.
-- Problem is... FunctionCall is an expression, and can be found basically anywhere, could even be a part of a declaration eg. `int a = g()`, so that means declaration objects also need to have this virtual method. Tried having it in all 3 base classes and still only just overriding in FunctionCall, but doesn't seem to work. I think I'm just bad with poplymorphism + how dynamic dispatch works. Will keep the functions and struct the same, as ideally it should work, and I manage to get the FuncCallInfo all the way up to FunctionDefinition to handle calls in a better way. Also means that the extra arg counting + stack sie increase doesn't work either.
-- Managed to get BinaryOperations functioning properly when one is a function call, by saving to reg `s1` if there is a function call, and by default we also store and load s1 on the stack in FunctionDefinition too - pls fix at some point.
+- Added a `getFunctionCall()` method in `BaseExpression`. It's fully implemented in the `FunctionCall` class.
+- Key classes needing this info are `FunctionDefinition` (to decide whether to save ra or not + increase stack size if more than 8 args) and `BinaryOperation` (to preserve the left operand).
+- To distinguish between various function call scenarios, used a `FunctionCallInfo` struct that contains a boolean and extra argument count.
+- Don't need to worry about multiple function calls; they occur sequentially. Use a max comparison for extra args.
+- Issue: Function calls can appear almost anywhere, even in declarations like `int a = g()`. Tried implementing this virtual method in multiple base classes, but realised this would have to be overriden everywhere - just to have getFunctionCall available at the top level FunctionDefinition
+- Decided this would add too much code bloat with the current implementation of our AST hierarchy, for a relatively insignificant case when having more than 8 arguments.
+- Changed `getFunctionCall()` to only be a boleean used to check if the right operand is FunctionCall or not, and use callee-saved regs as appropriate allowing BinaryOperations and recursion to work properly.

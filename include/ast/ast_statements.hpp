@@ -12,8 +12,8 @@ public:
     ~CompoundStatement();
 
     int getSize() const override;
-    FunctionCallInfo getFuncCall() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
+
 private:
     List_Ptr statement_list;
     List_Ptr declaration_list;

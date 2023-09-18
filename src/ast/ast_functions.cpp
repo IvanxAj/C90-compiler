@@ -19,27 +19,22 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     context.resetOffsets();
     // call getSize on its children nodes - want to return size required by: local_vars, parameters
     // call calcStackSizez(local_var_size, param_size) - hardcode to 32 bytes for now
-    // bool hasFuncCall = statements->getFuncCall().hasFunctionCall;
-    bool hasFuncCall = true;
 
     int param_list_size = funcDeclarator->getSize();
     std::cerr << "Param list size: " << param_list_size << std::endl;
+
     int statement_size = statements->getSize();
     std::cerr << "Statement list size: " << statement_size << std::endl;
 
     int stack_size = context.calculateStackSize(statement_size, param_list_size);
 
     // stack frame
-    // TODO fix stack_size calculation
     os << "addi sp,sp," << -1 * stack_size << std::endl;
     os << "sw ra, "<< stack_size - 4 << "(sp)" << std::endl;
     os << "sw s0, " << stack_size - 8 << "(sp)" << std::endl;
-    if (hasFuncCall) {
-        os << "sw s1, " << stack_size - 12 << "(sp)" << std::endl;  // adjust the offset accordingly
-    }
+    os << "sw s1, " << stack_size - 12 << "(sp)" << std::endl;  // adjust the offset accordingly
     os << "addi s0,sp," << stack_size << std::endl;
 
-    // TODO: handle parameters
     funcDeclarator->compile(os, context, destReg);
 
     // handle statements
@@ -52,9 +47,7 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     // tear down stack frame
     os << "lw ra, "<< stack_size - 4 << "(sp)" << std::endl;
     os << "lw s0, " << stack_size - 8 << "(sp)" << std::endl;
-    if (hasFuncCall) {
-        os << "lw s1, " << stack_size - 12 << "(sp)" << std::endl;  // adjust the offset accordingly
-    }
+    os << "lw s1, " << stack_size - 12 << "(sp)" << std::endl;  // adjust the offset accordingly
     os << "addi sp,sp, " << stack_size << std::endl;
     os << "jr ra \n" << std::endl;
 }
@@ -158,14 +151,8 @@ FunctionCall::~FunctionCall() {
     }
 }
 
-FunctionCallInfo FunctionCall::getFuncCall() const {
-    FunctionCallInfo info;
-    info.hasFunctionCall = true;
-    if (args) {
-        info.extraArgs = args->size() > 8 ? args->size() - 8 : 0;
-    }
-    std::cerr << "Function call returned" << info.hasFunctionCall << " and " << info.extraArgs << std::endl;
-    return info;
+bool FunctionCall::getFuncCall() const {
+    return true;
 }
 
 void FunctionCall::compile(std::ostream& os, Context& context, int destReg) const  {
@@ -182,7 +169,7 @@ void FunctionCall::compile(std::ostream& os, Context& context, int destReg) cons
                 int reg = context.allocateReg();
                 context.useReg(reg);
                 arg->compile(os, context, reg);
-                // not gg, each arg is either a constant, or a variable which should exist in bindings already then
+                // each arg is either a constant, or a variable which should exist in bindings already then
                 // dynamic cast the arg->getId->context.getType->handle offset properly
                 int arg_offset = (arg_no-8) * 4;
                 os << "sw " << context.getMnemonic(reg) << ", " << arg_offset << "(sp)" << std::endl;

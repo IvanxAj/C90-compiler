@@ -22,8 +22,8 @@ const std::string& BaseExpression::getIdentifier() {
     return empty_string;
 }
 
-FunctionCallInfo BaseExpression::getFuncCall() const {
-    return FunctionCallInfo();  // default implementation
+bool BaseExpression::getFuncCall() const {
+    return false;  // default implementation
 }
 
 
@@ -32,19 +32,12 @@ const std::string& BaseDeclaration::getIdentifier() {
     return empty_string;
 }
 int BaseDeclaration::getSize() const {
-    // default implementation
     return 0;
 }
 
-FunctionCallInfo BaseDeclaration::getFuncCall() const {
-    return FunctionCallInfo();  // default implementation
-}
 
 int BaseStatement::getSize() const {
     return 0;
 }
 
-FunctionCallInfo BaseStatement::getFuncCall() const {
-    return FunctionCallInfo();  // default implementation
-}
 

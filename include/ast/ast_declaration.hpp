@@ -13,7 +13,6 @@ public:
     ~Declaration();
 
     int getSize() const override;
-
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:

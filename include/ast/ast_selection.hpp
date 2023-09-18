@@ -8,7 +8,6 @@ class IfElse
  {
     public:
         IfElse(BaseExpression* _condition, BaseStatement* _statements1,BaseStatement* _statements2);
-
         IfElse(BaseExpression* _condition, BaseStatement* _statements1);
 
         void compile(std::ostream& os, Context& context, int destReg) const override;

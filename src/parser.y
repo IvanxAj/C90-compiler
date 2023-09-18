@@ -161,8 +161,8 @@ statement
     ;
 
 expression_statement
-    : ';'               { }
-    | expression ';'    { $$ = new ExpressionStatement($1); }
+    : expression ';'    { $$ = new ExpressionStatement($1); }
+    | ';'               { }
     ;
 
 selection_statement

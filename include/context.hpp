@@ -68,12 +68,6 @@ struct Scope
 
 };
 
-struct FunctionCallInfo
-{
-    bool hasFunctionCall = false;
-    int extraArgs = 0;
-};
-
 struct Context
 {
     std::string getMnemonic(int i) {

@@ -12,7 +12,7 @@ int BinaryOperation::prepLeft(std::ostream& os, Context& context, int destReg) c
 
     int left_reg = context.allocateReg();
     // check if right is a function call - then allocate a callee saved reg eg s1
-    if(right->getFuncCall().hasFunctionCall) {
+    if(right->getFuncCall()) {
         left_reg = 9; // s1 callee saved reg - should be fine to hardcode idk?
     }
     context.useReg(left_reg);

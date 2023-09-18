@@ -9,10 +9,8 @@ class For
 public:
     // Constructor with initialiser
     For(BaseStatement* _initialise, BaseStatement* _condition, BaseExpression* _increment, BaseStatement* _statements);
-
     // Constructor without initialiser
     For(BaseStatement* _initialise, BaseStatement* _condition, BaseStatement* _statements);
-
     ~For();
 
     void compile(std::ostream& os, Context& context, int destReg) const override;

@@ -14,7 +14,6 @@ public:
     ~Init_Declarator();
 
     const std::string& getIdentifier() override;
-
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
