@@ -1,7 +1,7 @@
 #include "ast/ast_jump_statement.hpp"
 
 // Return will contain a single node
-JumpStatement::JumpStatement(const std::string& _statement_type, BaseExpression* _expression)
+JumpStatement::JumpStatement(JumpType _statement_type, BaseExpression* _expression)
     : statement_type(_statement_type), expression(_expression) {}
 
 JumpStatement::~JumpStatement() {
@@ -13,19 +13,19 @@ JumpStatement::~JumpStatement() {
 // compile value of expression into correct register AO = 10
 void JumpStatement::compile(std::ostream& os, Context& context, int destReg) const {
 
-    if(statement_type == "return") {
-        if(expression) {
-            // evaluate into reg a5 - hopefully not used
-            expression->compile(os,context, 15);
-        }
-        os << "j " << context.ret_label << std::endl;
-    } else if (statement_type == "continue") {
-        os << "j " << context.getCurrentLoopStart() << std::endl;
-    } else if (statement_type == "break") {
+    switch (statement_type) {
+        case JumpType::Return:
+            if (expression) {
+                // Evaluate into reg a5 - hopefully not used
+                expression->compile(os, context, 15);
+            }
+            os << "j " << context.ret_label << std::endl;
+            break;
+        case JumpType::Continue:
+            os << "j " << context.getCurrentLoopStart() << std::endl;
+            break;
+        case JumpType::Break:
             os << "j " << context.getCurrentLoopEnd() << std::endl;
+            break;
     }
-
-    // int expr_reg = context.allocateReg();
-    // expression->compile(os,context, 15);
-    // os << "mv a0, a5" << std::endl;
-};
+}

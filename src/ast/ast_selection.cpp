@@ -8,6 +8,20 @@ IfElse::IfElse(BaseExpression* _condition, BaseStatement* _statements1)
     : condition(_condition), statements1(_statements1), statements2(nullptr)
     {}
 
+int IfElse::getSize() const {
+    int size1 = 0, size2 = 0;
+
+    if (statements1) {
+        size1 = statements1->getSize();
+    }
+
+    if (statements2) {
+        size2 = statements2->getSize();
+    }
+
+    return std::max(size1, size2);
+}
+
 void IfElse::compile(std::ostream& os, Context& context, int destReg) const {
 
         std::string label1 = context.makeLabel(".L");

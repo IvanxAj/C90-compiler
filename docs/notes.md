@@ -81,3 +81,9 @@
 - Issue: Function calls can appear almost anywhere, even in declarations like `int a = g()`. Tried implementing this virtual method in multiple base classes, but realised this would have to be overriden everywhere - just to have getFunctionCall available at the top level FunctionDefinition
 - Decided this would add too much code bloat with the current implementation of our AST hierarchy, for a relatively insignificant case when having more than 8 arguments.
 - Changed `getFunctionCall()` to only be a boleean used to check if the right operand is FunctionCall or not, and use callee-saved regs as appropriate allowing BinaryOperations and recursion to work properly.
+
+**16/09/23** Fix stuff
+- Implemented LogicalOr and LogicalAnd - took into account that these should short circuit
+- Examining `/programs/sqrt` test, noticed that program didn't see the declarations within while statements - forgot to implement getSize for these
+- Correctly implemented now for all the different statements - if/else, for, while
+- Refactored JumpStatement to use a JumpType enum to be more safe

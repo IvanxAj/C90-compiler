@@ -126,3 +126,65 @@ void BitwiseOr::compile(std::ostream& os, Context& context, int destReg) const {
     context.freeReg(right_reg);
 
 }
+
+
+void LogicalAnd::compile(std::ostream& os, Context& context, int destReg) const {
+
+    std::string false_label = context.makeLabel(".AND_FALSE");
+    std::string end_label = context.makeLabel(".AND_END");
+
+    int left_reg = context.allocateReg();
+    if(right->getFuncCall()) {
+        left_reg = 9;
+    }
+    context.useReg(left_reg);
+
+    left->compile(os, context, left_reg);
+    os << "beq " << context.getMnemonic(left_reg) << ", zero, " << false_label << std::endl;
+
+    // would short circuit, so can use same reg
+    right->compile(os, context, left_reg);
+    os << "beq " << context.getMnemonic(left_reg) << ", zero, " << false_label << std::endl;
+
+    // If both are true, set destination register to 1 (true)
+    os << "li " << context.getMnemonic(destReg) << ", 1" << std::endl;
+    os << "j " << end_label << std::endl;
+
+    // If either expression is false, set destReg to 0
+    os << false_label << ":" << std::endl;
+    os << "li " << context.getMnemonic(destReg) << ", 0" << std::endl;
+    os << end_label << ":" << std::endl;
+
+    context.freeReg(left_reg);
+}
+
+
+void LogicalOr::compile(std::ostream& os, Context& context, int destReg) const {
+
+    std::string true_label = context.makeLabel(".OR_TRUE");
+    std::string end_label = context.makeLabel(".OR_END");
+
+    int left_reg = context.allocateReg();
+    if(right->getFuncCall()) {
+        left_reg = 9;
+    }
+    context.useReg(left_reg);
+
+    left->compile(os, context, left_reg);
+    os << "bne " << context.getMnemonic(left_reg) << ", zero, " << true_label << std::endl;
+
+    right->compile(os, context, left_reg);
+    os << "bne " << context.getMnemonic(left_reg) << ", zero, " << true_label << std::endl;
+
+    // If both are false, set destination register to 0 (false)
+    os << "li " << context.getMnemonic(destReg) << ", 0" << std::endl;
+    os << "j " << end_label << std::endl;
+
+    // If either expression is true, set destReg to 1 (true)
+    os << true_label << ":" << std::endl;
+    os << "li " << context.getMnemonic(destReg) << ", 1" << std::endl;
+
+    // End label
+    os << end_label << ":" << std::endl;
+    context.freeReg(left_reg);
+}

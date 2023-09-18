@@ -27,15 +27,21 @@ int CompoundStatement::getSize() const {
     if (isEmpty) {
         return 0;
     }
-    int total_dec_size = 0;
+    int total_size = 0;
 
     if (declaration_list) {
         for (auto decl : *declaration_list) {
-            total_dec_size += dynamic_cast<const BaseDeclaration*>(decl)->getSize();
+            total_size += dynamic_cast<const BaseDeclaration*>(decl)->getSize();
         }
     }
 
-    return total_dec_size;
+    if (statement_list) {
+        for (auto statement : *statement_list) {
+            total_size += dynamic_cast<const BaseStatement*>(statement)->getSize();
+        }
+    }
+
+    return total_size;
 }
 
 

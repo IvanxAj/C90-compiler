@@ -8,6 +8,11 @@ While::~While() {
     delete statements;
 }
 
+int While::getSize() const {
+    // should return a size from CompoundStatements if any declarations exist
+    return statements->getSize();
+}
+
 void While::compile(std::ostream& os, Context& context, int destReg) const {
 
     std::string start_label = context.makeLabel(".WHILE_START");

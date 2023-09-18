@@ -13,6 +13,7 @@ public:
     For(BaseStatement* _initialise, BaseStatement* _condition, BaseStatement* _statements);
     ~For();
 
+    int getSize() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:

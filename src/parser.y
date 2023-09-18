@@ -178,10 +178,10 @@ iteration_statement
 	;
 
 jump_statement
-    : T_RETURN expression ';'       { $$ = new JumpStatement("return", $2); }
-	| T_RETURN ';'	                { $$ = new JumpStatement("return");  }
-    | T_CONTINUE ';'	            { $$ = new JumpStatement("continue"); }
-	| T_BREAK ';'	                { $$ = new JumpStatement("break"); }
+    : T_RETURN expression ';'       { $$ = new JumpStatement(JumpType::Return, $2); }
+	| T_RETURN ';'	                { $$ = new JumpStatement(JumpType::Return);  }
+    | T_CONTINUE ';'	            { $$ = new JumpStatement(JumpType::Continue); }
+	| T_BREAK ';'	                { $$ = new JumpStatement(JumpType::Break); }
     ;
 
 
@@ -200,12 +200,12 @@ conditional_expression
 
 logical_or_expression
 	: logical_and_expression { $$ = $1;}
-	| logical_or_expression OR_OP logical_and_expression /* { $$ = new LogicalOr($1, $3);} */
+	| logical_or_expression OR_OP logical_and_expression  { $$ = new LogicalOr($1, $3);}
 	;
 
 logical_and_expression
 	: inclusive_or_expression { $$ = $1;}
-	| logical_and_expression AND_OP inclusive_or_expression /* { $$ = new LogicalAnd($1, $3);} */
+	| logical_and_expression AND_OP inclusive_or_expression { $$ = new LogicalAnd($1, $3); }
 	;
 
 inclusive_or_expression

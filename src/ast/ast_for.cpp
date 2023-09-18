@@ -19,6 +19,11 @@ For::~For() {
     delete statements;
 }
 
+int For::getSize() const {
+    // should return a size from CompoundStatements if any declarations exist
+    return statements->getSize();
+}
+
 void For::compile(std::ostream& os, Context& context, int destReg) const {
 
     std::string start_label = context.makeLabel(".FOR_START");
