@@ -40,7 +40,7 @@
  // Control flow operators
 %token T_RETURN T_BREAK T_CONTINUE
 // Conditional statements
-%token T_IF T_ELSE T_WHILE T_FOR T_DO T_SWITCH T_CASE
+%token T_IF T_ELSE T_WHILE T_FOR T_DO T_SWITCH T_CASE T_DEFAULT
  // Stuff
 %token IDENTIFIER INT_LITERALS
 
@@ -53,11 +53,13 @@
 
 %type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration
 %type <base_statement> statement expression_statement jump_statement compound_statement selection_statement iteration_statement
+%type <base_statement> labeled_statement
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
 %type <base_expression> additive_expression multiplicative_expression shift_expression
 
 %type <base_expression> conditional_expression logical_or_expression logical_and_expression inclusive_or_expression
 %type <base_expression> exclusive_or_expression relational_expression and_expression equality_expression
+%type <base_expression> constant_expression
 
 %type <number> INT_LITERALS
 %type <string> IDENTIFIER
@@ -154,10 +156,11 @@ statement_list
 
 statement
     : jump_statement            { $$ = $1; }
-    | compound_statement        { $$ = $1; }
     | expression_statement      { $$ = $1; }
+    | compound_statement        { $$ = $1; }
     | selection_statement       { $$ = $1; }
 	| iteration_statement       { $$ = $1; }
+    | labeled_statement         { $$ = $1; }
     ;
 
 expression_statement
@@ -168,13 +171,18 @@ expression_statement
 selection_statement
 	: T_IF '(' expression ')' statement                     { $$ = new IfElse($3, $5);}
 	| T_IF '(' expression ')' statement T_ELSE statement    { $$ = new IfElse($3, $5, $7);}
-    /* | T_SWITCH '(' expression ')' statement                  { $$ = new Switch($3, $5); }  */
+    | T_SWITCH '(' expression ')' statement                 { $$ = new Switch($3, $5); }
 	;
 
 iteration_statement
 	: T_WHILE '(' expression ')' statement                                              { $$ = new While($3, $5); }
 	| T_FOR '(' expression_statement expression_statement ')' statement                 { $$ = new For($3, $4, $6);}
 	| T_FOR '(' expression_statement expression_statement expression ')' statement      { $$ = new For($3, $4, $5, $7);}
+	;
+
+labeled_statement
+	: T_CASE constant_expression ':' statement      { $$ = new Case($2, $4); }
+	| T_DEFAULT ':' statement                       { $$ = new Case($3); }
 	;
 
 jump_statement
@@ -188,6 +196,10 @@ jump_statement
 expression
     : assignment_expression     { $$ = $1; }
     ;
+
+constant_expression
+	: conditional_expression { $$ = $1;}
+	;
 
 assignment_expression
     : conditional_expression                              { $$ = $1; }

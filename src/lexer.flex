@@ -26,6 +26,7 @@ L               [a-zA-Z_]
 "else"			    { return(T_ELSE); }
 "switch"			  { return(T_SWITCH); }
 "case"			    { return(T_CASE); }
+"default"       { return(T_DEFAULT); }
 "while"			    { return(T_WHILE); }
 "do"            { return(T_DO); }
 "continue"      { return(T_CONTINUE); }
@@ -70,6 +71,7 @@ L               [a-zA-Z_]
 "}"             { return('}'); }
 
 ";"             { return(';'); }
+":"             { return(':'); }
 ","             { return(','); }
 "."		    	    { return('.'); }
 

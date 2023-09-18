@@ -8,6 +8,14 @@ IfElse::IfElse(BaseExpression* _condition, BaseStatement* _statements1)
     : condition(_condition), statements1(_statements1), statements2(nullptr)
     {}
 
+IfElse::~IfElse() {
+    delete condition;
+    delete statements1;
+    if (statements2) {
+        delete statements2;
+    }
+}
+
 int IfElse::getSize() const {
     int size1 = 0, size2 = 0;
 
@@ -53,33 +61,67 @@ void IfElse::compile(std::ostream& os, Context& context, int destReg) const {
 };
 
 
-/*
+Switch::Switch(BaseExpression* _expression, BaseStatement* _statements)
+    : expression(_expression), statements(_statements) {};
 
-int x = 1;
-if (x)
-main:
-        addi    sp,sp,-32
-        sw      s0,28(sp)
-        addi    s0,sp,32
+Switch::~Switch() {
+    delete expression;
+    delete statements;
+}
 
-        li      a5,1
-        sw      a5,-20(s0)
+int Switch::getSize() const {
+    return statements->getSize();
+}
 
-        lw      a5,-20(s0) -> compile condition
-        beq     a5,zero,.L2 -> generate
+void Switch::compile(std::ostream& os, Context& context, int destReg) const {
 
-        li      a5,5 -> statement compiled
-        sw      a5,-28(s0)
+    std::string start_label = context.makeLabel(".SWITCH_START");
+    std::string end_label = context.makeLabel(".SWITCH_END");
+    context.newLoop(start_label, end_label);
 
-        j       .L3 ->
-.L2:
-        li      a5,10
-        sw      a5,-24(s0)
-.L3:
-        nop
-        mv      a0,a5
-        lw      s0,28(sp)
-        addi    sp,sp,32
-        jr      ra
+    // evaluate expression into a reg
+    int reg = context.allocateReg();
+    context.useReg(reg);
+    expression->compile(os, context, reg);
 
-*/
+    statements->compile(os, context, reg);
+    os << end_label << ":" << std::endl;
+    context.freeReg(reg);
+    context.exitLoop();
+
+}
+
+
+Case::Case(BaseExpression* _expression, BaseStatement* _statements)
+    : expression(_expression), statements(_statements) {}
+
+Case::Case(BaseStatement* _statements)
+    : expression(nullptr), statements(_statements) {}
+
+Case::~Case() {
+    delete expression;
+    delete statements;
+}
+
+int Case::getSize() const {
+    return statements->getSize();
+}
+
+void Case::compile(std::ostream& os, Context& context, int destReg) const {
+
+    std::string case_end = context.makeLabel(".CASE_END");
+    int reg = context.allocateReg();
+    context.useReg(reg);
+
+    if(expression) {
+        // evaluate expression into a reg
+        expression->compile(os, context, reg);
+        // check if the case matches switch expression in destReg
+        os << "bne " << context.getMnemonic(destReg) << ", " << context.getMnemonic(reg) << ", " << case_end << std::endl;
+    }
+    // should be fine to re-use reg
+    statements->compile(os, context, reg);
+    os << case_end << ":" << std::endl;
+    context.freeReg(reg);
+
+}

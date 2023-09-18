@@ -83,7 +83,8 @@
 - Changed `getFunctionCall()` to only be a boleean used to check if the right operand is FunctionCall or not, and use callee-saved regs as appropriate allowing BinaryOperations and recursion to work properly.
 
 **16/09/23** Fix stuff
-- Implemented LogicalOr and LogicalAnd - took into account that these should short circuit
+- Implemented `LogicalOr` and `LogicalAnd` - took into account that these should short circuit
 - Examining `/programs/sqrt` test, noticed that program didn't see the declarations within while statements - forgot to implement getSize for these
 - Correctly implemented now for all the different statements - if/else, for, while
-- Refactored JumpStatement to use a JumpType enum to be more safe
+- Refactored `JumpStatement` to use a `JumpType` enum to be more safe
+- Added a simple implementation for switch case, but doesn't behave properly with break yet. Case needs to be changed, such that it has a `case_start` label, which had been prepared by the previous case, which is what it branches to. Allows multiple statements after a case to work properly - which should then fix break.

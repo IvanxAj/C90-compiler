@@ -83,7 +83,7 @@ struct Context
         return regNames[i];
     }
 
-    bool usedRegs[32] =
+    std::array<bool, 32> usedRegs =
         {1, 1, 1, 1, 1,
          0, 0, 0,
          1, 1,
@@ -127,8 +127,8 @@ struct Context
     /* ----------------------------------HANDLE VARS------------------------------------------- */
 
     int getVarOffset(const std::string& name) {
-        for (int i = scopes.size() - 1; i >= 0; --i) {
-            int offset = scopes[i].getLocalVar(name).offset;
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+            int offset = it->getLocalVar(name).offset;
             if (offset != -1) {
                 return offset;
             }
@@ -137,8 +137,8 @@ struct Context
     }
 
     Specifier getVarType(const std::string& name) {
-        for (int i = scopes.size() - 1; i >= 0; --i) {
-            Specifier type = scopes[i].getLocalVar(name).type;
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+            Specifier type = it->getLocalVar(name).type;
             return type;
         }
         // will return INVALID _TYPE if variable doesnt exist anyway
@@ -146,8 +146,8 @@ struct Context
     }
 
     int addVar(const std::string& name, Specifier type) {
-        int varSize = typeSizes.at(type);
-        local_var_offset -= varSize;
+        int var_size = typeSizes.at(type);
+        local_var_offset -= var_size;
         scopes.back().addLocalVar(name, type, local_var_offset);
         return local_var_offset;
     }
@@ -190,7 +190,7 @@ struct Context
     /* ----------------------------------HANDLE LOOPS------------------------------------------- */
 
     void newLoop(const std::string& start_label, const std::string& end_label) {
-        loopLabels.push_back({start_label, end_label});
+        loopLabels.emplace_back(start_label, end_label);
     }
 
     void exitLoop() {
@@ -216,23 +216,23 @@ struct Context
     /* ----------------------------------UTILITY------------------------------------------- */
 
     int calculateStackSize(int totalLocalVarBytes, int totalParamBytes) {
-        int stackSize = 16;  // Minimum stack size
+        int stack_size = 16;  // Minimum stack size
 
         // Calculate space needed for local variables
         // can set the local_var_offset here
         if (totalLocalVarBytes > 0) {
-            stackSize += 16 * std::ceil(static_cast<double>(totalLocalVarBytes) / 16.0);
+            stack_size += 16 * std::ceil(static_cast<double>(totalLocalVarBytes) / 16.0);
         }
 
         // can set the param offset here
-        param_offset = -stackSize;
+        param_offset = -stack_size;
 
         // Calculate space needed for parameters
         if (totalParamBytes > 0) {
-            stackSize += 16 * std::ceil(static_cast<double>(totalParamBytes) / 16.0);
+            stack_size += 16 * std::ceil(static_cast<double>(totalParamBytes) / 16.0);
         }
 
-        return stackSize;
+        return stack_size;
     }
 
     void debugScope() {
