@@ -32,9 +32,9 @@
  /* ----------------------------------------------------------          Tokens           -------------------------------------------------------------- */
 
  // Arithmetic operators
-%token T_LEFT_OP T_RIGHT_OP T_INC_OP T_DEC_OP
+%token T_LEFT_OP T_RIGHT_OP T_INC_OP T_DEC_OP T_ADD_ASSIGN T_SUB_ASSIGN T_MUL_ASSIGN T_DIV_ASSIGN T_MOD_ASSIGN T_RIGHT_ASSIGN T_LEFT_ASSIGN
  // Comparison Operators
-%token AND_OP OR_OP LE_OP GE_OP EQ_OP NE_OP
+%token T_AND_OP T_OR_OP T_LE_OP T_GE_OP T_EQ_OP T_NE_OP T_AND_ASSIGN T_XOR_ASSIGN T_OR_ASSIGN
  // Types operators
 %token T_INT T_CHAR T_SIZEOF T_UNSIGNED T_VOID
  // Control flow operators
@@ -202,9 +202,19 @@ constant_expression
 	;
 
 assignment_expression
-    : conditional_expression                              { $$ = $1; }
-    | conditional_expression '=' assignment_expression    { $$ = new Assignment($1, $3); }
-    ;
+    : conditional_expression                                    { $$ = $1; }
+    | conditional_expression '=' assignment_expression          { $$ = new Assignment($1, $3); }
+	| unary_expression T_ADD_ASSIGN assignment_expression       { $$ = new Assignment($1, new Addition($1, $3, false)); }
+	| unary_expression T_SUB_ASSIGN assignment_expression       { $$ = new Assignment($1, new Subtraction($1, $3, false)); }
+    | unary_expression T_MUL_ASSIGN assignment_expression       { $$ = new Assignment($1, new Multiplication($1, $3, false)); }
+	| unary_expression T_DIV_ASSIGN assignment_expression       { $$ = new Assignment($1, new Division($1, $3, false)); }
+	| unary_expression T_MOD_ASSIGN assignment_expression       { $$ = new Assignment($1, new Modulus($1, $3, false)); }
+	| unary_expression T_LEFT_ASSIGN assignment_expression      { $$ = new BinaryAssign($1, new LeftShift($1, $3, false)); }
+	| unary_expression T_RIGHT_ASSIGN assignment_expression     { $$ = new BinaryAssign($1, new RightShift($1, $3, false)); }
+	| unary_expression T_AND_ASSIGN assignment_expression       { $$ = new BinaryAssign($1, new BitwiseAnd($1, $3, false)); }
+	| unary_expression T_XOR_ASSIGN assignment_expression       { $$ = new BinaryAssign($1, new BitwiseXor($1, $3, false)); }
+	| unary_expression T_OR_ASSIGN assignment_expression        { $$ = new BinaryAssign($1, new BitwiseOr($1, $3, false)); }
+	;
 
 conditional_expression
 	: logical_or_expression { $$ = $1;}
@@ -212,12 +222,12 @@ conditional_expression
 
 logical_or_expression
 	: logical_and_expression { $$ = $1;}
-	| logical_or_expression OR_OP logical_and_expression  { $$ = new LogicalOr($1, $3);}
+	| logical_or_expression T_OR_OP logical_and_expression  { $$ = new LogicalOr($1, $3);}
 	;
 
 logical_and_expression
 	: inclusive_or_expression { $$ = $1;}
-	| logical_and_expression AND_OP inclusive_or_expression { $$ = new LogicalAnd($1, $3); }
+	| logical_and_expression T_AND_OP inclusive_or_expression { $$ = new LogicalAnd($1, $3); }
 	;
 
 inclusive_or_expression
@@ -237,16 +247,16 @@ and_expression
 
 equality_expression
 	: relational_expression { $$ = $1;}
-	| equality_expression EQ_OP relational_expression { $$ = new Equal($1, $3);}
-	| equality_expression NE_OP relational_expression { $$ = new NotEqual($1, $3);}
+	| equality_expression T_EQ_OP relational_expression { $$ = new Equal($1, $3);}
+	| equality_expression T_NE_OP relational_expression { $$ = new NotEqual($1, $3);}
 	;
 
 relational_expression
 	: shift_expression                              { $$ = $1;}
 	| relational_expression '<' shift_expression    { $$ = new LessThan($1, $3);}
 	| relational_expression '>' shift_expression    { $$ = new GreaterThan($1, $3);}
-	| relational_expression LE_OP shift_expression  { $$ = new LessThanEqual($1, $3); }
-	| relational_expression GE_OP shift_expression  { $$ = new GreaterThanEqual($1, $3); }
+	| relational_expression T_LE_OP shift_expression  { $$ = new LessThanEqual($1, $3); }
+	| relational_expression T_GE_OP shift_expression  { $$ = new GreaterThanEqual($1, $3); }
 	;
 
 shift_expression
@@ -272,6 +282,12 @@ unary_expression
     : postfix_expression                { $$ = $1; }
     | T_INC_OP unary_expression         { $$ = new Increment($2); }
     | T_DEC_OP unary_expression         { $$ = new Decrement($2); }
+  	| '+' unary_expression              { $$ = new UnaryOp(UnaryOperator::Plus, $2); }
+	| '-' unary_expression              { $$ = new UnaryOp(UnaryOperator::Minus, $2); }
+	| '!' unary_expression              { $$ = new UnaryOp(UnaryOperator::LogicalNot, $2); }
+	| '~' unary_expression              { $$ = new UnaryOp(UnaryOperator::BitwiseNot, $2); }
+	| '*' unary_expression              { $$ = new UnaryOp(UnaryOperator::Deref, $2); }
+	| '&' unary_expression              { $$ = new UnaryOp(UnaryOperator::AddressOf, $2); }
     | T_SIZEOF unary_expression         { $$ = new SizeOf($2);}
 	| T_SIZEOF '(' type_specifier ')'   { $$ = new SizeOf($3);}
     ;

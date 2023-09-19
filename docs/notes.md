@@ -88,3 +88,7 @@
 - Correctly implemented now for all the different statements - if/else, for, while
 - Refactored `JumpStatement` to use a `JumpType` enum to be more safe
 - Added a simple implementation for switch case, but doesn't behave properly with break yet. Case needs to be changed, such that it has a `case_start` label, which had been prepared by the previous case, which is what it branches to. Allows multiple statements after a case to work properly - which should then fix break.
+
+**19/09/23**
+- Added Unary operations and the other assignment operations (+= etc).
+- Due to the implementation of += etc, both BinaryOperation and Assignment had pointer to the left object, and so when deleting AST had to make sure only one of these objects were actually deleting the left object. Smart pointers would make this a lot easier, with reference counting, but had to use a kinda hacky fix to specifiy when the BinaryOperation actually had ownership, and let Assignment delete it.

@@ -7,7 +7,7 @@ class BinaryOperation
     : public BaseExpression
 {
 public:
-    BinaryOperation(BaseExpression* _left, BaseExpression* _right);
+    BinaryOperation(BaseExpression* _left, BaseExpression* _right, bool _owns_operands = true);
     ~BinaryOperation();
 
     int prepLeft(std::ostream& os, Context& context, int destReg) const;
@@ -18,4 +18,5 @@ public:
 protected:
     BaseExpression* left;
     BaseExpression* right;
+    bool owns_operands;
 };

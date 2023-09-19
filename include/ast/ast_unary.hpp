@@ -3,6 +3,29 @@
 #include "ast_node.hpp"
 #include "ast_wrappers.hpp"
 
+enum class UnaryOperator {
+    Plus,
+    Minus,
+    BitwiseNot,
+    LogicalNot,
+    Deref,
+    AddressOf
+};
+
+class UnaryOp : public BaseExpression
+{
+public:
+    UnaryOp(UnaryOperator _op, BaseExpression* _expr);
+    ~UnaryOp();
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+
+private:
+    UnaryOperator op;
+    BaseExpression* expr;
+};
+
+
 class Increment
     : public BaseExpression
 {

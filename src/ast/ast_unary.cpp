@@ -1,5 +1,50 @@
 #include "ast/ast_unary.hpp"
 
+
+UnaryOp::UnaryOp(UnaryOperator _op, BaseExpression* _expr)
+    : op(_op), expr(_expr) {}
+
+UnaryOp::~UnaryOp() {
+    delete expr;
+}
+
+void UnaryOp::compile(std::ostream& os, Context& context, int destReg) const {
+
+    switch(op)
+    {
+        case UnaryOperator::Minus:
+            expr->compile(os, context, destReg);
+            os << "neg " << context.getMnemonic(destReg) << ", " << context.getMnemonic(destReg) << std::endl;
+            break;
+        case UnaryOperator::Plus:
+            expr->compile(os, context, destReg);
+            break;
+        case UnaryOperator::LogicalNot:
+            expr->compile(os, context, destReg);
+            os << "seqz " << context.getMnemonic(destReg) << ", " << context.getMnemonic(destReg) << std::endl;
+            os << "andi " << context.getMnemonic(destReg) << ", " << context.getMnemonic(destReg) << ", 0xff" << std::endl;
+            break;
+        case UnaryOperator::BitwiseNot:
+            expr->compile(os, context, destReg);
+            os << "not " << context.getMnemonic(destReg) << ", " << context.getMnemonic(destReg) << std::endl;
+            break;
+        case UnaryOperator::Deref:
+            // Implement dereference logic
+            std::cerr << "Deref operator not supported yet" << std::endl;
+            break;
+        case UnaryOperator::AddressOf:
+            // Implement address-of logic
+            std::string var_name = expr->getIdentifier();
+            int offset = context.getVarOffset(var_name);
+            os << "addi " << context.getMnemonic(destReg) << ", s0, " << offset << std::endl;
+            break;
+    }
+
+};
+
+
+
+
 Increment::Increment(BaseExpression* _expr) : expr(_expr) {};
 
 Increment::~Increment() {

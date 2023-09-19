@@ -50,6 +50,7 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     os << "lw s1, " << stack_size - 12 << "(sp)" << std::endl;  // adjust the offset accordingly
     os << "addi sp,sp, " << stack_size << std::endl;
     os << "jr ra \n" << std::endl;
+
 }
 
 

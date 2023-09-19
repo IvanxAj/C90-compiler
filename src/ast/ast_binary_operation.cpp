@@ -1,10 +1,10 @@
 #include "ast/ast_binary_operation.hpp"
 
-BinaryOperation::BinaryOperation(BaseExpression* _left, BaseExpression* _right)
-    : left(_left), right(_right) {};
+BinaryOperation::BinaryOperation(BaseExpression* _left, BaseExpression* _right, bool _owns_operands)
+        : left(_left), right(_right), owns_operands(_owns_operands) {}
 
 BinaryOperation::~BinaryOperation() {
-    delete left;
+    if (owns_operands) delete left;
     delete right;
 };
 
