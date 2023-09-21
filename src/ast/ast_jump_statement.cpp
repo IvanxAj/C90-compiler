@@ -16,7 +16,6 @@ void JumpStatement::compile(std::ostream& os, Context& context, int destReg) con
     switch (statement_type) {
         case JumpType::Return:
             if (expression) {
-                // Evaluate into reg a5 - hopefully not used
                 expression->compile(os, context, 15);
             }
             os << "j " << context.ret_label << std::endl;

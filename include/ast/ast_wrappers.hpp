@@ -21,6 +21,7 @@ public:
     virtual ~BaseExpression() = default;
     virtual const std::string& getIdentifier();
     virtual bool getFuncCall() const;
+    virtual Specifier getType(Context& context) const;
 };
 
 

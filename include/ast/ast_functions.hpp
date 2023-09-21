@@ -8,13 +8,13 @@ class FunctionDefinition
 {
 // Three branches: type, declarator, compound statement
 public:
-    FunctionDefinition(BaseDeclaration* _funcDeclarator, BaseStatement* _statements);
+    FunctionDefinition(Specifier _type, BaseDeclaration* _funcDeclarator, BaseStatement* _statements);
     ~FunctionDefinition();
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
-    // Type* node;
+    Specifier type;
     BaseDeclaration* funcDeclarator;
     BaseStatement* statements;
 };

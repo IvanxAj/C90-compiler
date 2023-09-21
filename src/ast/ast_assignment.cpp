@@ -14,6 +14,8 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
 
     int reg = context.allocateReg();
     context.useReg(reg);
+
+    std::cerr << "Compile assignment right" << std::endl;
     expr2->compile(os, context, reg);
 
     os << "sw " << context.getMnemonic(reg) << ", " << offset << "(s0)" << std::endl;

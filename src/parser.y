@@ -36,7 +36,7 @@
  // Comparison Operators
 %token T_AND_OP T_OR_OP T_LE_OP T_GE_OP T_EQ_OP T_NE_OP T_AND_ASSIGN T_XOR_ASSIGN T_OR_ASSIGN
  // Types operators
-%token T_INT T_CHAR T_SIZEOF T_UNSIGNED T_VOID
+%token T_INT T_CHAR T_SIZEOF T_UNSIGNED T_VOID T_FLOAT T_DOUBLE
  // Control flow operators
 %token T_RETURN T_BREAK T_CONTINUE
 // Conditional statements
@@ -93,7 +93,7 @@ declaration
 
 
 function_definition
-    : declaration_specifier declarator compound_statement { $$ = new FunctionDefinition($2, $3); }
+    : declaration_specifier declarator compound_statement { $$ = new FunctionDefinition($1, $2, $3); }
     ;
 
  /*  type of stuff */
@@ -104,6 +104,8 @@ declaration_specifier
  /*$$ = new PrimitiveType(INT);*/
 type_specifier
     : T_INT         { $$ = Specifier::_int; }
+    | T_FLOAT       { $$ = Specifier::_float; }
+    | T_DOUBLE      { $$ = Specifier::_double; }
     | T_CHAR        { $$ = Specifier::_char; }
     | T_VOID        { $$ = Specifier::_void; }
 	| T_UNSIGNED    { $$ = Specifier::_unsigned; }
@@ -125,6 +127,8 @@ direct_declarator
     : IDENTIFIER                                    { $$ = new Declarator(*$1); delete $1; }
     | direct_declarator '(' ')'                     { $$ = new FuncDeclarator($1); }
     | direct_declarator '(' parameter_list ')'      { $$ = new FuncDeclarator($1, $3); }
+    | direct_declarator '[' ']'                     { std::cerr << "Array decl"; }
+    | direct_declarator '[' constant_expression ']' { std::cerr << "Array decl"; }
     ;
 
 parameter_list
@@ -301,6 +305,7 @@ postfix_expression
     : primary_expression                                        { $$ = $1; }
     | postfix_expression '(' ')'                                { $$ = new FunctionCall($1); }
     | postfix_expression '(' argument_expression_list ')'       { $$ = new FunctionCall($1, $3);}
+    | postfix_expression '[' expression ']'                     { std::cerr << "Array index"; }
     | postfix_expression T_INC_OP                               { $$ = new Increment($1);}
 	| postfix_expression T_DEC_OP                               { $$ = new Decrement($1);}
     ;

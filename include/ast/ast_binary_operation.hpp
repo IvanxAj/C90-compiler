@@ -13,6 +13,7 @@ public:
     int prepLeft(std::ostream& os, Context& context, int destReg) const;
     int prepRight(std::ostream& os, Context& context, int destReg) const;
 
+    // Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 protected:

@@ -9,6 +9,7 @@ class Integer
 public:
     Integer(int _value);
 
+    Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
@@ -21,8 +22,9 @@ class Identifier
 public:
     Identifier(const std::string& _name);
 
-    void compile(std::ostream& os, Context& context, int destReg) const override;
+    Specifier getType(Context& context) const override;
     const std::string& getIdentifier()  override;
+    void compile(std::ostream& os, Context& context, int destReg) const override;
 private:
     std::string name;
 };

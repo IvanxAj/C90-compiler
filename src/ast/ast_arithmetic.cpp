@@ -6,7 +6,25 @@ void Addition::compile(std::ostream& os, Context& context, int destReg) const {
     int left_reg = prepLeft(os, context, destReg);
     int right_reg = prepRight(os, context, destReg);
 
-    os << "add " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+    Specifier left_type = left->getType(context);
+    Specifier right_type = right->getType(context);
+
+    // currently only support same type operations
+    if (right_type != left_type) {
+        exit(1);
+    }
+
+    switch (left_type) {
+        case Specifier::_int:
+            os << "add " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
+        case Specifier::_double:
+            os << "fadd.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
+        case Specifier::_float:
+            os << "fadd.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
+    }
 
     context.freeReg(left_reg);
     context.freeReg(right_reg);
@@ -19,7 +37,26 @@ void Subtraction::compile(std::ostream& os, Context& context, int destReg) const
     int left_reg = prepLeft(os, context, destReg);
     int right_reg = prepRight(os, context, destReg);
 
-    os << "sub " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+    Specifier left_type = left->getType(context);
+    Specifier right_type = right->getType(context);
+
+    // currently only support same type operations
+    if (right_type != left_type) {
+        exit(1);
+    }
+
+    switch (left_type) {
+        case Specifier::_int:
+             os << "sub " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+             break;
+        case Specifier::_double:
+              os << "fsub.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              break;
+        case Specifier::_float:
+             os << "fsub.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              break;
+
+    }
 
     context.freeReg(left_reg);
     context.freeReg(right_reg);
@@ -31,7 +68,26 @@ void Multiplication::compile(std::ostream& os, Context& context, int destReg) co
     int left_reg = prepLeft(os, context, destReg);
     int right_reg = prepRight(os, context, destReg);
 
-    os << "mul " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+    Specifier left_type = left->getType(context);
+    Specifier right_type = right->getType(context);
+
+    // currently only support same type operations
+    if (right_type != left_type) {
+        exit(1);
+    }
+
+    switch (left_type) {
+        case Specifier::_int:
+             os << "mul " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+             break;
+        case Specifier::_double:
+              os << "fmul.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              break;
+        case Specifier::_float:
+             os << "fmul.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              break;
+
+    }
 
     context.freeReg(left_reg);
     context.freeReg(right_reg);
@@ -44,7 +100,26 @@ void Division::compile(std::ostream& os, Context& context, int destReg) const {
     int left_reg = prepLeft(os, context, destReg);
     int right_reg = prepRight(os, context, destReg);
 
-    os << "div " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+     Specifier left_type = left->getType(context);
+    Specifier right_type = right->getType(context);
+
+    // currently only support same type operations
+    if (right_type != left_type) {
+        exit(1);
+    }
+
+    switch (left_type) {
+        case Specifier::_int:
+             os << "div " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+             break;
+        case Specifier::_double:
+              os << "fdiv.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              break;
+        case Specifier::_float:
+             os << "fdiv.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              break;
+
+    }
 
     context.freeReg(left_reg);
     context.freeReg(right_reg);

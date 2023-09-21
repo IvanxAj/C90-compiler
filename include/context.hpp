@@ -29,15 +29,19 @@ enum class Specifier
     _int,
     _char,
     _void,
+    _float,
+    _double,
     _unsigned,
     INVALID_TYPE = -1,
 };
 
 const std::unordered_map<Specifier, int> typeSizes = {
-    {Specifier::_int,   4},
-    {Specifier::_char,  1},
-    {Specifier::_void,  0},
-    {Specifier::_unsigned, 4}
+    {Specifier::_int,       4},
+    {Specifier::_char,      1},
+    {Specifier::_void,      0},
+    {Specifier::_float,     8},
+    {Specifier::_double,    8},
+    {Specifier::_unsigned,  4}
 };
 
 struct Variable
@@ -75,26 +79,23 @@ struct Scope
 
 struct Context
 {
-    std::string getMnemonic(int i) {
-        static const std::array<std::string, 32> regNames = {
-            "zero", "ra", "sp", "gp", "tp",
-            "t0", "t1", "t2",
-            "s0", "s1",
-            "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
-            "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
-            "t3", "t4", "t5", "t6"
-        };
 
-        return regNames[i];
-    }
-
-    std::array<bool, 32> usedRegs =
-        {1, 1, 1, 1, 1,
-         0, 0, 0,
-         1, 1,
-         1, 1, 1, 0, 0, 1, 1, 1,
-         1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-         0, 0, 0, 0};
+    std::array<bool, 64> usedRegs = {
+        // base registers
+        1, 1, 1, 1, 1,
+        0, 0, 0,
+        1, 1,
+        1, 1, 1, 0, 0, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0,
+        // float registers
+        0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1,
+        1, 1,
+        1, 1, 0, 0, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0
+    };
 
     // stack
     int local_var_offset = -16;     // track current local var offset
@@ -129,6 +130,36 @@ struct Context
         return -1;
     }
 
+    int allocateFloatReg() {
+        for (int i = 37; i < 64; i++) {
+            if (!usedRegs[i]) {
+                useReg(i);
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    std::string getMnemonic(int i) {
+        static const std::array<std::string, 64> regNames = {
+            "zero", "ra", "sp", "gp", "tp",
+            "t0", "t1", "t2",
+            "s0", "s1",
+            "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7",
+            "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11",
+            "t3", "t4", "t5", "t6",
+
+            "ft0", "ft1", "ft2", "ft3", "ft4", "ft5", "ft6", "ft7",
+            "fs0", "fs1",
+            "fa0", "fa1",
+            "fa2", "fa3", "fa4", "fa5", "fa6", "fa7",
+            "fs2", "fs3", "fs4", "fs5", "fs6", "fs7","fs8", "fs9", "fs10", "fs11",
+            "ft8", "ft9", "ft10", "ft11"
+        };
+
+        return regNames[i];
+    }
+
     /* ----------------------------------HANDLE VARS------------------------------------------- */
 
     int getVarOffset(const std::string& name) {
@@ -144,7 +175,7 @@ struct Context
     Specifier getVarType(const std::string& name) {
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
             Specifier type = it->getLocalVar(name).type;
-            return type;
+            if (type != Specifier::INVALID_TYPE) return type;
         }
         // will return INVALID _TYPE if variable doesnt exist anyway
         return Specifier::INVALID_TYPE;
@@ -217,6 +248,10 @@ struct Context
         return "";
     }
 
+    /*  Case statements add looplabel with empty end_label
+        To allow break to keep working, we have to ignore this, and return
+        first valid label - so we iterate backwards
+    */
     std::string getCurrentLoopEnd() {
         for (auto it = loopLabels.rbegin(); it != loopLabels.rend(); ++it) {
             if (!it->endLabel.empty()) {
@@ -269,6 +304,8 @@ struct Context
                 switch (var.type) {
                     case Specifier::_int: type = "int"; break;
                     case Specifier::_char: type = "char"; break;
+                    case Specifier::_double: type = "double"; break;
+                    case Specifier::_float: type = "float"; break;
                     default: type = "Unknown"; break;
                 }
 

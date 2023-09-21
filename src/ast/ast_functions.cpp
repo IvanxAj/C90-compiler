@@ -1,8 +1,8 @@
 #include "ast/ast_functions.hpp"
 
 // Three branches: type, declarator, compound statement
-FunctionDefinition::FunctionDefinition(BaseDeclaration* _funcDeclarator, BaseStatement* _statements)
-    : funcDeclarator(_funcDeclarator), statements(_statements) {}
+FunctionDefinition::FunctionDefinition(Specifier _type, BaseDeclaration* _funcDeclarator, BaseStatement* _statements)
+    : type(_type), funcDeclarator(_funcDeclarator), statements(_statements) {}
 
 FunctionDefinition::~FunctionDefinition() {
     delete funcDeclarator;
@@ -10,6 +10,11 @@ FunctionDefinition::~FunctionDefinition() {
 }
 
 void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg) const {
+
+    if (type == Specifier::_float || type == Specifier::_double) {
+        destReg = 42;
+    }
+
     // print various flags
     os << ".text" << std::endl;
     os << ".globl " << funcDeclarator->getIdentifier() << std::endl;
@@ -42,7 +47,18 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
 
     // handle return
     os << context.ret_label << ":" << std::endl;
-    os << "mv a0, a5" << std::endl;
+
+    switch(type) {
+        case Specifier::_int:
+            os << "mv a0, a5" << std::endl;
+            break;
+        case Specifier::_double:
+            os << "fmv.d fa0, fa5" << std::endl;
+            break;
+        case Specifier::_float:
+            os << "fmv.s fa0, fa5" << std::endl;
+            break;
+    }
 
     // tear down stack frame
     os << "lw ra, "<< stack_size - 4 << "(sp)" << std::endl;
@@ -133,8 +149,17 @@ void ParamDeclaration::compile(std::ostream& os, Context& context, int destReg) 
     // which is equivalent to callee 0(s0), 4(s0)
     if (param_offset == 1) return;
 
-    os << "sw " << context.getMnemonic(10 + param_index) << ", " << param_offset << "(s0)" << std::endl;
-
+    switch(type) {
+        case(Specifier::_int):
+            os << "sw " << context.getMnemonic(10 + param_index) << ", " << param_offset << "(s0)" << std::endl;
+            break;
+        case(Specifier::_double):
+            os << "fsd " << context.getMnemonic(42 + param_index) << ", " << param_offset << "(s0)" << std::endl;
+            break;
+        case(Specifier::_float):
+            os << "fsw " << context.getMnemonic(42 + param_index) << ", " << param_offset << "(s0)" << std::endl;
+            break;
+    }
 }
 
 
