@@ -18,7 +18,7 @@ void While::compile(std::ostream& os, Context& context, int destReg) const {
     std::string start_label = context.makeLabel(".WHILE_START");
     std::string end_label = context.makeLabel(".WHILE_END");
 
-    context.newLoop(start_label, end_label);
+    context.addLabels(start_label, end_label);
 
     os << start_label << ":" << std::endl;
 
@@ -36,5 +36,5 @@ void While::compile(std::ostream& os, Context& context, int destReg) const {
     os << end_label << ":" << std::endl;
     context.freeReg(cond_reg);
 
-    context.exitLoop();
+    context.popLabels();
 };

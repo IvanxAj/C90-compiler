@@ -92,3 +92,6 @@
 **19/09/23**
 - Added Unary operations and the other assignment operations (+= etc).
 - Due to the implementation of += etc, both BinaryOperation and Assignment had pointer to the left object, and so when deleting AST had to make sure only one of these objects were actually deleting the left object. Smart pointers would make this a lot easier, with reference counting, but had to use a kinda hacky fix to specifiy when the BinaryOperation actually had ownership, and let Assignment delete it.
+
+**21/09/23** Switch
+- Fix switch case implementation, used earlier suggested method of having previous switch case define the next case label, which is what the condition branches to. Required refactoring context LoopLabels slightly, to support defining a start_label, with no end_label, and still having the other methods work fine.

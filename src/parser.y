@@ -209,11 +209,11 @@ assignment_expression
     | unary_expression T_MUL_ASSIGN assignment_expression       { $$ = new Assignment($1, new Multiplication($1, $3, false)); }
 	| unary_expression T_DIV_ASSIGN assignment_expression       { $$ = new Assignment($1, new Division($1, $3, false)); }
 	| unary_expression T_MOD_ASSIGN assignment_expression       { $$ = new Assignment($1, new Modulus($1, $3, false)); }
-	| unary_expression T_LEFT_ASSIGN assignment_expression      { $$ = new BinaryAssign($1, new LeftShift($1, $3, false)); }
-	| unary_expression T_RIGHT_ASSIGN assignment_expression     { $$ = new BinaryAssign($1, new RightShift($1, $3, false)); }
-	| unary_expression T_AND_ASSIGN assignment_expression       { $$ = new BinaryAssign($1, new BitwiseAnd($1, $3, false)); }
-	| unary_expression T_XOR_ASSIGN assignment_expression       { $$ = new BinaryAssign($1, new BitwiseXor($1, $3, false)); }
-	| unary_expression T_OR_ASSIGN assignment_expression        { $$ = new BinaryAssign($1, new BitwiseOr($1, $3, false)); }
+	| unary_expression T_LEFT_ASSIGN assignment_expression      { $$ = new Assignment($1, new LeftShift($1, $3, false)); }
+	| unary_expression T_RIGHT_ASSIGN assignment_expression     { $$ = new Assignment($1, new RightShift($1, $3, false)); }
+	| unary_expression T_AND_ASSIGN assignment_expression       { $$ = new Assignment($1, new BitwiseAnd($1, $3, false)); }
+	| unary_expression T_XOR_ASSIGN assignment_expression       { $$ = new Assignment($1, new BitwiseXor($1, $3, false)); }
+	| unary_expression T_OR_ASSIGN assignment_expression        { $$ = new Assignment($1, new BitwiseOr($1, $3, false)); }
 	;
 
 conditional_expression

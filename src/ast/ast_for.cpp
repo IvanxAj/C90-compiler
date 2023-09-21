@@ -30,7 +30,7 @@ void For::compile(std::ostream& os, Context& context, int destReg) const {
     std::string end_label = context.makeLabel(".FOR_END");
     std::string cont_label = context.makeLabel(".FOR_INCR");
 
-    context.newLoop(start_label, cont_label);
+    context.addLabels(start_label, cont_label);
 
     if (initialise) {
         initialise->compile(os, context, destReg);
@@ -56,6 +56,6 @@ void For::compile(std::ostream& os, Context& context, int destReg) const {
 
     // end loop
     os << end_label << ": " << std::endl;
-    context.exitLoop();
+    context.popLabels();
     context.freeReg(cond_reg);
 }

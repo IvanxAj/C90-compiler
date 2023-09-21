@@ -77,17 +77,26 @@ void Switch::compile(std::ostream& os, Context& context, int destReg) const {
 
     std::string start_label = context.makeLabel(".SWITCH_START");
     std::string end_label = context.makeLabel(".SWITCH_END");
-    context.newLoop(start_label, end_label);
+    context.addLabels(start_label, end_label);
 
     // evaluate expression into a reg
     int reg = context.allocateReg();
     context.useReg(reg);
     expression->compile(os, context, reg);
 
+    // label for next case
+    std::string case_label = context.makeLabel(".CASE");
+    context.updateStartLabel(case_label);
+
+    // case statements
     statements->compile(os, context, reg);
+
+    // last case will still need something to branch to
+    os << context.getCurrentLoopStart() << ":" << std::endl;
+
     os << end_label << ":" << std::endl;
     context.freeReg(reg);
-    context.exitLoop();
+    context.popLabels();
 
 }
 
@@ -109,19 +118,26 @@ int Case::getSize() const {
 
 void Case::compile(std::ostream& os, Context& context, int destReg) const {
 
-    std::string case_end = context.makeLabel(".CASE_END");
     int reg = context.allocateReg();
     context.useReg(reg);
+
+    // start of case
+    os << context.getCurrentLoopStart() << ":" << std::endl;
+
+    // label for next case
+    std::string next_case_label = context.makeLabel(".CASE");
+    context.updateStartLabel(next_case_label);
 
     if(expression) {
         // evaluate expression into a reg
         expression->compile(os, context, reg);
         // check if the case matches switch expression in destReg
-        os << "bne " << context.getMnemonic(destReg) << ", " << context.getMnemonic(reg) << ", " << case_end << std::endl;
+        os << "bne " << context.getMnemonic(destReg) << ", " << context.getMnemonic(reg) << ", " << next_case_label << std::endl;
     }
+
     // should be fine to re-use reg
     statements->compile(os, context, reg);
-    os << case_end << ":" << std::endl;
+
     context.freeReg(reg);
 
 }

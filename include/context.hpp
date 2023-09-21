@@ -53,6 +53,11 @@ struct Variable
 
 };
 
+struct LoopLabel {
+    std::string startLabel;
+    std::string endLabel;
+};
+
 struct Scope
 {
     std::unordered_map<std::string, Variable> bindings;     // Track variables in scope
@@ -102,7 +107,7 @@ struct Context
     std::string ret_label;
 
     std::vector<Scope> scopes;
-    std::vector<std::pair<std::string, std::string>> loopLabels;
+    std::vector<LoopLabel> loopLabels;
 
     // Add a global scope on constructor
     Context() {
@@ -189,26 +194,34 @@ struct Context
 
     /* ----------------------------------HANDLE LOOPS------------------------------------------- */
 
-    void newLoop(const std::string& start_label, const std::string& end_label) {
-        loopLabels.emplace_back(start_label, end_label);
+    void addLabels(const std::string& start_label, const std::string& end_label) {
+        loopLabels.push_back({start_label, end_label});
     }
 
-    void exitLoop() {
+    void popLabels() {
         if (!loopLabels.empty()) {
             loopLabels.pop_back();
         }
     }
 
+    void updateStartLabel(const std::string& new_start_label) {
+        if (!loopLabels.empty()) {
+            loopLabels.back().startLabel = new_start_label;
+        }
+    }
+
     std::string getCurrentLoopStart() {
         if (!loopLabels.empty()) {
-            return loopLabels.back().first;
+            return loopLabels.back().startLabel;
         }
         return "";
     }
 
     std::string getCurrentLoopEnd() {
-        if (!loopLabels.empty()) {
-            return loopLabels.back().second;
+        for (auto it = loopLabels.rbegin(); it != loopLabels.rend(); ++it) {
+            if (!it->endLabel.empty()) {
+                return it->endLabel;
+            }
         }
         return "";
     }
