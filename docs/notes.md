@@ -94,6 +94,11 @@
 - Due to the implementation of += etc, both `BinaryOperation` and `Assignment` had pointer to the left object, and so when deleting AST had to make sure only one of these objects were actually deleting the left object. Smart pointers would make this a lot easier, with reference counting, but had to use a kinda hacky fix to specifiy when the `BinaryOperation` actually had ownership, and let `Assignment` delete it.
 
 **21/09/23**
-
 - Fix switch case implementation, used earlier suggested method of having previous switch case define the next case label, which is what the condition branches to. Required refactoring context `LoopLabels` slightly, to support defining a `start_label`, with no `end_label`, and still having the other methods work fine.
+- Started types implementation, with the aim of supporting float and doubles. This required the use of a different set of 32 fp registers, which have been added to context, along with the mnemonics - extended the original data structure to reduce having to rewrite the same code.
+- Main focus was on adding relevant type checking to generate and use correct assembly operator + registers in:
+  - Function parameters (store into stack from argument regs fa0...7)
+  - Identifier (load with correct op based on type from bindings)
+  - Arithmetic (allocate regs + use correct op based on type of left and right operands)
 
+**22/09/23**

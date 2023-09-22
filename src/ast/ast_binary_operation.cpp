@@ -8,6 +8,10 @@ BinaryOperation::~BinaryOperation() {
     delete right;
 };
 
+Specifier BinaryOperation::getType(Context& context) const {
+    return right->getType(context);
+}
+
 int BinaryOperation::prepLeft(std::ostream& os, Context& context, int destReg) const {
     // TODO fix for chain of arithmetic operations e.g. ((a+b)+c)
     // TODO what type is a function call??, should just get the type from any of the operands and run with it
@@ -26,7 +30,7 @@ int BinaryOperation::prepLeft(std::ostream& os, Context& context, int destReg) c
         if(right->getFuncCall()) {
             left_reg = 41; // fs1 callee saved reg
         }
-        std::cerr << "Left: Other type" << std::endl;
+        std::cerr << "Left: double/float type" << std::endl;
     } else {
         std::cerr << "Error: Invalid type" << std::endl;
     }
@@ -43,8 +47,10 @@ int BinaryOperation::prepRight(std::ostream& os, Context& context, int destReg) 
     int right_reg ;
 
     if (type == Specifier::_int) {
+        std::cerr << "Right: Int type" << std::endl;
         right_reg = context.allocateReg();
     } else if (type == Specifier::_double || type == Specifier::_float) {
+        std::cerr << "Right: double/float type type" << std::endl;
         right_reg = context.allocateFloatReg();
     }
 

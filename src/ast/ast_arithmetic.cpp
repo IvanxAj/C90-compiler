@@ -19,10 +19,10 @@ void Addition::compile(std::ostream& os, Context& context, int destReg) const {
             os << "add " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;
         case Specifier::_double:
-            os << "fadd.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            os << "fadd.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;
         case Specifier::_float:
-            os << "fadd.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            os << "fadd.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;
     }
 
@@ -50,10 +50,10 @@ void Subtraction::compile(std::ostream& os, Context& context, int destReg) const
              os << "sub " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
              break;
         case Specifier::_double:
-              os << "fsub.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              os << "fsub.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
               break;
         case Specifier::_float:
-             os << "fsub.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+             os << "fsub.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
               break;
 
     }
@@ -71,8 +71,13 @@ void Multiplication::compile(std::ostream& os, Context& context, int destReg) co
     Specifier left_type = left->getType(context);
     Specifier right_type = right->getType(context);
 
+    std::cerr << "Left type: " << context.specifierToString(left_type)
+                << " Right type: " << context.specifierToString(right_type)
+                << "Dest reg: " << destReg << std::endl;
+
     // currently only support same type operations
     if (right_type != left_type) {
+        std::cerr << "Right type does not equal left type" << std::endl;
         exit(1);
     }
 
@@ -81,12 +86,13 @@ void Multiplication::compile(std::ostream& os, Context& context, int destReg) co
              os << "mul " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
              break;
         case Specifier::_double:
-              os << "fmul.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              os << "fmul.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
               break;
         case Specifier::_float:
-             os << "fmul.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+             os << "fmul.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
               break;
-
+        default:
+            std::cerr << "Switch case broke" << std::endl;
     }
 
     context.freeReg(left_reg);
@@ -113,10 +119,10 @@ void Division::compile(std::ostream& os, Context& context, int destReg) const {
              os << "div " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
              break;
         case Specifier::_double:
-              os << "fdiv.d " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+              os << "fdiv.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
               break;
         case Specifier::_float:
-             os << "fdiv.s " << context.getMnemonic(destReg+32) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+             os << "fdiv.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
               break;
 
     }

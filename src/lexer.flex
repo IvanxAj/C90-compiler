@@ -12,6 +12,9 @@ int current_line = 1;
 
 D			          [0-9]
 L               [a-zA-Z_]
+H			          [a-fA-F0-9]
+FS			        (f|F|l|L)
+IS			        (u|U|l|L)*
 
 %%
 
@@ -37,8 +40,10 @@ L               [a-zA-Z_]
 "for"			      { return(T_FOR); }
 "sizeof"        { return(T_SIZEOF); }
 
-{L}({L}|{D})*   { yylval.string = new std::string(yytext); return IDENTIFIER; }
-{D}+            { yylval.number = atoi(yytext); return INT_LITERALS; }
+{D}+"."{D}+{FS}?        { yylval.number = std::stod(yytext); return FLOAT_LITERALS; }
+{D}+                    { yylval.number = std::stod(yytext); return INT_LITERALS; }
+{L}({L}|{D})*           { yylval.string = new std::string(yytext); return IDENTIFIER; }
+
 
 "&&"			{ return(T_AND_OP); }
 "||"			{ return(T_OR_OP); }

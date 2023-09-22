@@ -11,15 +11,34 @@ Assignment::~Assignment() {
 void Assignment::compile(std::ostream& os, Context& context, int destReg) const {
     std::string var_name = expr1->getIdentifier();
     int offset = context.getVarOffset(var_name);
+    Specifier type = context.getVarType(var_name);
 
-    int reg = context.allocateReg();
-    context.useReg(reg);
+    int right_reg;
+    std::string store_instruction;
 
-    std::cerr << "Compile assignment right" << std::endl;
-    expr2->compile(os, context, reg);
+    switch(type) {
+        case Specifier::_int:
+            right_reg = context.allocateReg();
+            store_instruction = "sw ";
+            break;
+        case Specifier::_float:
+            right_reg = context.allocateFloatReg();
+            store_instruction = "fsw ";
+            break;
+        case Specifier::_double:
+            right_reg = context.allocateFloatReg();
+            store_instruction = "fsd ";
+            break;
+        default:
+            std::cerr << "Assignment: Invalid type. " << std::endl;
+            exit(1);
+    }
 
-    os << "sw " << context.getMnemonic(reg) << ", " << offset << "(s0)" << std::endl;
+    context.useReg(right_reg);
+    expr2->compile(os, context, right_reg);
 
-    context.freeReg(reg);
+    os << store_instruction << context.getMnemonic(right_reg) << ", " << offset << "(s0)" << std::endl;
+
+    context.freeReg(right_reg);
 
 }

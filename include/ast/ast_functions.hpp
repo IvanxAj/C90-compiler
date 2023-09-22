@@ -47,6 +47,7 @@ public:
     ~ParamDeclaration();
 
     int getSize() const override;
+    Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
@@ -63,6 +64,7 @@ public:
     ~FunctionCall();
 
     bool getFuncCall() const override;
+    Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 private:
     BaseExpression* id;

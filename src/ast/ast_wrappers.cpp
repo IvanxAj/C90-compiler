@@ -40,6 +40,9 @@ int BaseDeclaration::getSize() const {
     return 0;
 }
 
+Specifier BaseDeclaration::getType(Context& context) const {
+    return Specifier::_int;
+}
 
 int BaseStatement::getSize() const {
     return 0;

@@ -33,8 +33,7 @@ public:
     virtual ~BaseDeclaration() = default;
     virtual const std::string& getIdentifier();
     virtual int getSize() const;
-
-    // ?: if these base classes continue to have the same methods - combine?
+    virtual Specifier getType(Context& context) const;
 
 };
 

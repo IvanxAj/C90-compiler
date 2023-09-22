@@ -71,7 +71,7 @@ void CompoundStatement::compile(std::ostream& os, Context& context, int destReg)
         }
     }
 
-    // context.debugScope();
+    context.debugScope();
 
     context.popScope();
 }

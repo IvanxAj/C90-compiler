@@ -16,7 +16,13 @@ void JumpStatement::compile(std::ostream& os, Context& context, int destReg) con
     switch (statement_type) {
         case JumpType::Return:
             if (expression) {
-                expression->compile(os, context, 15);
+                if (context.current_func_type == Specifier::_float || context.current_func_type == Specifier::_double) {
+                    // compile expression into reg fa5
+                    expression->compile(os, context, 47);
+                } else {
+                    // compile expression into reg a5
+                    expression->compile(os, context, 15);
+                }
             }
             os << "j " << context.ret_label << std::endl;
             break;

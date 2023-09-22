@@ -11,14 +11,18 @@ FunctionDefinition::~FunctionDefinition() {
 
 void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg) const {
 
+    std::string func_name = funcDeclarator->getIdentifier();
+
+    context.saveFuncReturnType(func_name, type);
     if (type == Specifier::_float || type == Specifier::_double) {
         destReg = 42;
     }
 
+
     // print various flags
     os << ".text" << std::endl;
-    os << ".globl " << funcDeclarator->getIdentifier() << std::endl;
-    os << funcDeclarator->getIdentifier() << ":" << std::endl;
+    os << ".globl " << func_name << std::endl;
+    os << func_name << ":" << std::endl;
 
     context.ret_label = context.makeLabel(".FUNC_RETURN");
     context.resetOffsets();
@@ -102,7 +106,7 @@ int FuncDeclarator::getSize() const {
         param_size += dynamic_cast<const BaseDeclaration*>(param)->getSize();
         param_count++;
 
-        if (param_count >=8) break;
+        // if (param_count >=8) break;
     }
     return param_size;
 };
@@ -116,16 +120,28 @@ void FuncDeclarator::compile(std::ostream& os, Context& context, int destReg) co
 
     if (param_list != nullptr) {
 
-        int param_no = 0;
+#       // int and float params stored independently - ie f(float a, int b)
+        // where the args are stored in fa0 and a0 respectively
+        // so maintain count of each param type, to fetch from correct regs
+
+        int int_param_count = 0;
+        int float_param_count = 0;
+
         for (auto param : *param_list) {
-            // param_no above 8 is handled using the stack instead of registers
-            param->compile(os, context, param_no);
-            param_no++;
+
+            // TODO param_no above 8 should be handled using the stack instead of registers
+            Specifier param_type = dynamic_cast<const BaseDeclaration*>(param)->getType(context);
+            if (param_type == Specifier::_int) {
+                param->compile(os, context, int_param_count);
+                int_param_count++;
+            } else {
+                param->compile(os, context, float_param_count);
+                float_param_count++;
+            }
         }
     }
 
 };
-
 
 
 ParamDeclaration::ParamDeclaration(Specifier _type, BaseDeclaration* _declarator)
@@ -136,6 +152,10 @@ ParamDeclaration::~ParamDeclaration() {
 
 int ParamDeclaration::getSize() const {
     return typeSizes.at(type);
+}
+
+Specifier ParamDeclaration::getType(Context& context) const {
+    return type;
 }
 
 void ParamDeclaration::compile(std::ostream& os, Context& context, int destReg) const {
@@ -181,10 +201,20 @@ bool FunctionCall::getFuncCall() const {
     return true;
 }
 
+Specifier FunctionCall::getType(Context& context) const {
+
+    auto it = context.functionReturnTypes.find(id->getIdentifier());
+    // default to int if func call id not found - as defined by c90
+    if (it == context.functionReturnTypes.end()) return Specifier::_int;
+    return it->second;
+}
+
 void FunctionCall::compile(std::ostream& os, Context& context, int destReg) const  {
     std::string funcName = id->getIdentifier();
 
     if (args) {
+
+        // TODO: store into appropriate regs based on arg type - eg fa0... or a0...
 
         int arg_no = 0;
         for (auto arg : *args) {

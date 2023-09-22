@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 /*
 REGISTERS RISC-V
@@ -39,7 +40,7 @@ const std::unordered_map<Specifier, int> typeSizes = {
     {Specifier::_int,       4},
     {Specifier::_char,      1},
     {Specifier::_void,      0},
-    {Specifier::_float,     8},
+    {Specifier::_float,     4},
     {Specifier::_double,    8},
     {Specifier::_unsigned,  4}
 };
@@ -103,12 +104,15 @@ struct Context
     int param_offset_excess = 0;    // track params on previous stack frame
     int frame_size = 32;
 
-    // flags
+    // local context
     bool isFunctionDef = 0;
     std::string ret_label;
+    Specifier current_func_type;
 
     std::vector<Scope> scopes;
     std::vector<LoopLabel> loopLabels;
+    std::unordered_map<std::string, Specifier> functionReturnTypes;
+    // std::vector<std::pair<std::string, Specifier>> functionReturnTypes;
 
     // Add a global scope on constructor
     Context() {
@@ -223,6 +227,11 @@ struct Context
         frame_size = 32;
     }
 
+    void saveFuncReturnType(const std::string& func_name, Specifier return_type) {
+        functionReturnTypes[func_name] = return_type;
+        current_func_type = return_type;
+    }
+
     /* ----------------------------------HANDLE LOOPS------------------------------------------- */
 
     void addLabels(const std::string& start_label, const std::string& end_label) {
@@ -268,6 +277,10 @@ struct Context
 
         // Calculate space needed for local variables
         // can set the local_var_offset here
+
+        // allocate 4 bytes for floats - helps guarantee floats don't overwrite vars
+        totalParamBytes += 8;
+
         if (totalLocalVarBytes > 0) {
             stack_size += 16 * std::ceil(static_cast<double>(totalLocalVarBytes) / 16.0);
         }
@@ -283,35 +296,32 @@ struct Context
         return stack_size;
     }
 
-    void debugScope() {
-        if (scopes.empty()) {
-            std::cerr << "No current scope to debug." << std::endl;
-            return;
+    std::string specifierToString(Specifier specifier) const {
+        switch (specifier) {
+            case Specifier::_int:       return "int";
+            case Specifier::_char:      return "char";
+            case Specifier::_void:      return "void";
+            case Specifier::_float:     return "float";
+            case Specifier::_double:    return "double";
+            case Specifier::_unsigned:  return "unsigned";
+            default:                    return "INVALID_TYPE";
         }
+    }
 
-        std::cerr << "Debugging all scopes:" << std::endl;
+    void debugScope() const {
+        std::cerr << "------ DEBUGGING SCOPES ------" << std::endl;
 
         for (size_t i = 0; i < scopes.size(); ++i) {
-            const Scope& currentScope = scopes[i];
-            std::cerr << "Scope " << i << ":" << std::endl;
-
-            for (const auto& entry : currentScope.bindings) {
-                std::string name = entry.first;
-                Variable var = entry.second;
-                int offset = var.offset;
-                std::string type;
-
-                switch (var.type) {
-                    case Specifier::_int: type = "int"; break;
-                    case Specifier::_char: type = "char"; break;
-                    case Specifier::_double: type = "double"; break;
-                    case Specifier::_float: type = "float"; break;
-                    default: type = "Unknown"; break;
-                }
-
-                std::cerr << "  Variable: " << name << ", Type: " << type << ", Offset: " << offset << std::endl;
+            std::cerr << "Scope " << i + 1 << ":" << std::endl;
+            for (const auto& binding : scopes[i].bindings) {
+                std::cerr << "  Name: " << binding.first
+                        << ", Type: " << specifierToString(binding.second.type)
+                        << ", Offset: " << binding.second.offset << std::endl;
             }
+            std::cerr << std::endl;  // Separate scopes with a newline
         }
+
+        std::cerr << "-----------------------------" << std::endl;
     }
 
     inline std::string makeLabel (std::string label){

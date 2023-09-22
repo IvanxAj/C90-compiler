@@ -1,9 +1,10 @@
 int f()
 {
     int x;
-    x=20;
-    while(x > 10){
-        x=x-1;
+    int n = 10;
+    x=0;
+    while(x < n){
+        x++;
     }
     return x;
 }

@@ -3,17 +3,20 @@
 #include "ast_node.hpp"
 #include "ast_wrappers.hpp"
 
-class Integer
+
+class Number
     : public BaseExpression
 {
 public:
-    Integer(int _value);
+
+    Number(double _value, Specifier _type);
 
     Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
-    int value;
+    double value;
+    Specifier type;
 };
 
 class Identifier

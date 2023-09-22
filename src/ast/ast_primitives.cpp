@@ -1,14 +1,41 @@
 #include "ast/ast_primitives.hpp"
 
 
-Integer::Integer(int _value): value(_value) {}
+Number::Number(double _value, Specifier _type)
+    : value(_value), type(_type) {}
 
-Specifier Integer::getType(Context& context) const {
-    return Specifier::_int;
+Specifier Number::getType(Context& context) const {
+    return type;
 }
 
-void Integer::compile(std::ostream& os, Context& context, int destReg) const {
-    os << "li "<< context.getMnemonic(destReg) << "," << value << std::endl;
+void Number::compile(std::ostream& os, Context& context, int destReg) const {
+
+    union {
+        float f;
+        uint32_t i;
+    } float_cast;
+
+    int reg;
+
+    switch(type) {
+        case Specifier::_int:
+            os << "li "<< context.getMnemonic(destReg) << "," << value << std::endl;
+            break;
+        case Specifier::_float:
+            float_cast.f = value;
+
+            reg = context.allocateReg();
+            os << "li " << context.getMnemonic(reg) << ", " << float_cast.i << std::endl;
+            os << "sw " << context.getMnemonic(reg) << ", 0(sp)" << std::endl;      // store on stack temporarily
+            os << "flw " <<  context.getMnemonic(destReg) << ", 0(sp)" << std::endl;
+
+            context.freeReg(reg);
+            break;
+        default:
+            std::cerr << "Invalid data type for a number" << std::endl;
+            exit(1);
+    }
+
 }
 
 
@@ -42,7 +69,6 @@ void Identifier::compile(std::ostream& os, Context& context, int destReg) const 
             break;
 
     }
-
 
 
 }
