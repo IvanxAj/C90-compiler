@@ -17,7 +17,7 @@ int BinaryOperation::prepLeft(std::ostream& os, Context& context, int destReg) c
     // TODO what type is a function call??, should just get the type from any of the operands and run with it
     Specifier type = left->getType(context);
 
-    int left_reg;
+    int left_reg = -1;
 
     if (type == Specifier::_int) {
         left_reg = context.allocateReg();
@@ -44,7 +44,7 @@ int BinaryOperation::prepLeft(std::ostream& os, Context& context, int destReg) c
 int BinaryOperation::prepRight(std::ostream& os, Context& context, int destReg) const {
 
     Specifier type = right->getType(context);
-    int right_reg ;
+    int right_reg = -1;
 
     if (type == Specifier::_int) {
         std::cerr << "Right: Int type" << std::endl;

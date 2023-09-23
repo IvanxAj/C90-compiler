@@ -24,6 +24,9 @@ void Addition::compile(std::ostream& os, Context& context, int destReg) const {
         case Specifier::_float:
             os << "fadd.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;
+        default:
+            std::cerr << "Addition: Invalid op type" << std::endl;
+            exit(1);
     }
 
     context.freeReg(left_reg);
@@ -47,15 +50,17 @@ void Subtraction::compile(std::ostream& os, Context& context, int destReg) const
 
     switch (left_type) {
         case Specifier::_int:
-             os << "sub " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-             break;
+            os << "sub " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
         case Specifier::_double:
-              os << "fsub.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-              break;
+            os << "fsub.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
         case Specifier::_float:
-             os << "fsub.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-              break;
-
+            os << "fsub.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
+        default:
+            std::cerr << "Subtraction: Invalid op type" << std::endl;
+            exit(1);
     }
 
     context.freeReg(left_reg);
@@ -83,16 +88,17 @@ void Multiplication::compile(std::ostream& os, Context& context, int destReg) co
 
     switch (left_type) {
         case Specifier::_int:
-             os << "mul " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-             break;
+            os << "mul " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
         case Specifier::_double:
-              os << "fmul.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-              break;
+            os << "fmul.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
         case Specifier::_float:
-             os << "fmul.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-              break;
+            os << "fmul.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
         default:
-            std::cerr << "Switch case broke" << std::endl;
+            std::cerr << "Multiplication: Invalid op type" << std::endl;
+            exit(1);
     }
 
     context.freeReg(left_reg);
@@ -106,7 +112,7 @@ void Division::compile(std::ostream& os, Context& context, int destReg) const {
     int left_reg = prepLeft(os, context, destReg);
     int right_reg = prepRight(os, context, destReg);
 
-     Specifier left_type = left->getType(context);
+    Specifier left_type = left->getType(context);
     Specifier right_type = right->getType(context);
 
     // currently only support same type operations
@@ -116,15 +122,17 @@ void Division::compile(std::ostream& os, Context& context, int destReg) const {
 
     switch (left_type) {
         case Specifier::_int:
-             os << "div " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-             break;
+            os << "div " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
         case Specifier::_double:
-              os << "fdiv.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-              break;
+            os << "fdiv.d " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
         case Specifier::_float:
-             os << "fdiv.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
-              break;
-
+            os << "fdiv.s " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
+            break;
+        default:
+            std::cerr << "Division: Invalid op type" << std::endl;
+            exit(1);
     }
 
     context.freeReg(left_reg);

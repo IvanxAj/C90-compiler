@@ -30,7 +30,7 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
             store_instruction = "fsd ";
             break;
         default:
-            std::cerr << "Assignment: Invalid type. " << std::endl;
+            std::cerr << "Assignment: Invalid type" << std::endl;
             exit(1);
     }
 

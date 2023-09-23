@@ -102,7 +102,6 @@ struct Context
     int local_var_offset = -16;     // track current local var offset
     int param_offset = -32;         // track current param offset
     int param_offset_excess = 0;    // track params on previous stack frame
-    int frame_size = 32;
 
     // local context
     bool isFunctionDef = 0;
@@ -224,7 +223,6 @@ struct Context
         local_var_offset = -16;
         param_offset = -32;
         param_offset_excess = 0;
-        frame_size = 32;
     }
 
     void saveFuncReturnType(const std::string& func_name, Specifier return_type) {
@@ -315,10 +313,10 @@ struct Context
             std::cerr << "Scope " << i + 1 << ":" << std::endl;
             for (const auto& binding : scopes[i].bindings) {
                 std::cerr << "  Name: " << binding.first
-                        << ", Type: " << specifierToString(binding.second.type)
-                        << ", Offset: " << binding.second.offset << std::endl;
+                          << ", Type: " << specifierToString(binding.second.type)
+                          << ", Offset: " << binding.second.offset << std::endl;
             }
-            std::cerr << std::endl;  // Separate scopes with a newline
+            std::cerr << std::endl;
         }
 
         std::cerr << "-----------------------------" << std::endl;

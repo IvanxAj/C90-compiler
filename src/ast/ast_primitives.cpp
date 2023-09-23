@@ -32,7 +32,7 @@ void Number::compile(std::ostream& os, Context& context, int destReg) const {
             context.freeReg(reg);
             break;
         default:
-            std::cerr << "Invalid data type for a number" << std::endl;
+            std::cerr << "Number: Invalid data type" << std::endl;
             exit(1);
     }
 
@@ -67,8 +67,9 @@ void Identifier::compile(std::ostream& os, Context& context, int destReg) const 
         case Specifier::_float:
             os << "flw " << context.getMnemonic(destReg) << ", " << context.getVarOffset(name) << "(s0)" << std::endl;
             break;
-
+        default:
+            std::cerr << "Identifier: Invalid variable type" << std::endl;
+            exit(1);
     }
-
 
 }

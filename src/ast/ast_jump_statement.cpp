@@ -32,5 +32,8 @@ void JumpStatement::compile(std::ostream& os, Context& context, int destReg) con
         case JumpType::Break:
             os << "j " << context.getCurrentLoopEnd() << std::endl;
             break;
+        default:
+            // should not be possible to get here
+            exit(1);
     }
 }

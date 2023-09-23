@@ -62,6 +62,9 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
         case Specifier::_float:
             os << "fmv.s fa0, fa5" << std::endl;
             break;
+        default:
+            std::cerr << "FunctionDefinition: Invalid function return type" << std::endl;
+            exit(1);
     }
 
     // tear down stack frame
@@ -120,7 +123,7 @@ void FuncDeclarator::compile(std::ostream& os, Context& context, int destReg) co
 
     if (param_list != nullptr) {
 
-#       // int and float params stored independently - ie f(float a, int b)
+        // int and float params stored independently - ie f(float a, int b)
         // where the args are stored in fa0 and a0 respectively
         // so maintain count of each param type, to fetch from correct regs
 
@@ -173,12 +176,15 @@ void ParamDeclaration::compile(std::ostream& os, Context& context, int destReg) 
         case(Specifier::_int):
             os << "sw " << context.getMnemonic(10 + param_index) << ", " << param_offset << "(s0)" << std::endl;
             break;
-        case(Specifier::_double):
-            os << "fsd " << context.getMnemonic(42 + param_index) << ", " << param_offset << "(s0)" << std::endl;
-            break;
         case(Specifier::_float):
             os << "fsw " << context.getMnemonic(42 + param_index) << ", " << param_offset << "(s0)" << std::endl;
             break;
+        case(Specifier::_double):
+            os << "fsd " << context.getMnemonic(42 + param_index) << ", " << param_offset << "(s0)" << std::endl;
+            break;
+        default:
+            std::cerr << "ParamDeclaration: Invalid param type" << std::endl;
+            exit(1);
     }
 }
 
@@ -213,31 +219,48 @@ void FunctionCall::compile(std::ostream& os, Context& context, int destReg) cons
     std::string funcName = id->getIdentifier();
 
     if (args) {
+        int int_arg_count = 0;
+        int float_arg_count = 0;
 
-        // TODO: store into appropriate regs based on arg type - eg fa0... or a0...
-
-        int arg_no = 0;
         for (auto arg : *args) {
-            // args < 8 = store in a regs
-            if (arg_no < 8) arg->compile(os, context, 10 + arg_no);
-            // args > 8 store on stack
-            else {
-                int reg = context.allocateReg();
-                context.useReg(reg);
-                arg->compile(os, context, reg);
-                // each arg is either a constant, or a variable which should exist in bindings already then
-                // dynamic cast the arg->getId->context.getType->handle offset properly
-                int arg_offset = (arg_no-8) * 4;
-                os << "sw " << context.getMnemonic(reg) << ", " << arg_offset << "(sp)" << std::endl;
-                context.freeReg(reg);
+            Specifier arg_type = dynamic_cast<const BaseExpression*>(arg)->getType(context);
+
+            if (arg_type == Specifier::_int) {
+                if (int_arg_count < 8) arg->compile(os, context, 10 + int_arg_count);
+                // ... code to store on stack
+                int_arg_count++;
+            } else if (arg_type == Specifier::_double || arg_type == Specifier::_float) {
+                if (float_arg_count < 8) arg->compile(os, context, 42 + float_arg_count);
+                // ... code to store on the stack
+                float_arg_count++;
             }
-        arg_no++;
         }
 
+        /* Code when storing >8 args on stack
+        int reg = context.allocateReg();
+        context.useReg(reg);
+        arg->compile(os, context, reg);
+        int arg_offset = (arg_no-8) * 4; - hardcoded int
+        os << "sw " << context.getMnemonic(reg) << ", " << arg_offset << "(sp)" << std::endl;
+        context.freeReg(reg);
+        */
     }
 
     os << "call " << funcName << std::endl;
-    os << "mv " << context.getMnemonic(destReg) << ",a0" << std::endl;
+
+    Specifier return_type = getType(context);
+    switch (return_type) {
+        case Specifier::_int:
+            os << "mv " << context.getMnemonic(destReg) << ",a0" << std::endl;
+            break;
+        case Specifier::_float:
+            os << "fmv.s " << context.getMnemonic(destReg) << ",fa0" << std::endl;
+            break;
+        default:
+            std::cerr << "FunctionCall: Invalid function return type" << std::endl;
+            exit(1);
+    }
+
 }
 
 

@@ -30,7 +30,7 @@ void For::compile(std::ostream& os, Context& context, int destReg) const {
     std::string end_label = context.makeLabel(".FOR_END");
     std::string cont_label = context.makeLabel(".FOR_INCR");
 
-    context.addLabels(start_label, cont_label);
+    context.addLabels(cont_label, end_label);
 
     if (initialise) {
         initialise->compile(os, context, destReg);

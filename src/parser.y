@@ -101,14 +101,14 @@ declaration_specifier
     : type_specifier { $$ = $1; }
     ;
 
- /*$$ = new PrimitiveType(INT);*/
+/* Treat unsigned as int for now */
 type_specifier
     : T_INT         { $$ = Specifier::_int; }
     | T_FLOAT       { $$ = Specifier::_float; }
     | T_DOUBLE      { $$ = Specifier::_double; }
     | T_CHAR        { $$ = Specifier::_char; }
     | T_VOID        { $$ = Specifier::_void; }
-	| T_UNSIGNED    { $$ = Specifier::_unsigned; }
+	| T_UNSIGNED    { $$ = Specifier::_int; }
     ;
 
 init_declarator
