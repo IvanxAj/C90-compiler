@@ -13,76 +13,23 @@ jobs:
       statuses: write
       checks: write
       contents: read
-
+    container:
+      image: ghcr.io/ivanxaj/c90-compiler/environment:v1.0.0
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --fix-missing \
-              git \
-              lsb-release \
-              python3 \
-              python3-pip \
-              autoconf \
-              bc \
-              bison \
-              dos2unix \
-              gdb \
-              gcc \
-              make \
-              flex \
-              build-essential \
-              ca-certificates \
-              curl \
-              device-tree-compiler
-
-      - name: Install RISC-V Toolchain and related dependencies
-        run: |
-          # Installing RISC-V Toolchain
-          arch="$(dpkg --print-architecture)"; arch="${arch##*-}"; \
-          case "$arch" in \
-            'arm64') \
-              curl --output riscv-gnu-toolchain.tar.gz -L "https://github.com/langproc/langproc-2022-cw/releases/download/v1.0.0/riscv-gnu-toolchain-2022-09-21-ubuntu-22.04-arm64.tar.gz" \
-              ;; \
-            *)
-              curl --output riscv-gnu-toolchain.tar.gz -L "https://github.com/langproc/langproc-2022-cw/releases/download/v1.0.0/riscv-gnu-toolchain-2022-09-21-ubuntu-22.04-amd64.tar.gz" \
-              ;; \
-          esac;
-
-          sudo rm -rf /opt/riscv
-          sudo tar -xzf riscv-gnu-toolchain.tar.gz --directory /opt
-          echo "/opt/riscv/bin" >> $GITHUB_PATH
-          rm riscv-gnu-toolchain.tar.gz
-
-          # Installing Spike RISC-V ISA Simulator
-          git clone https://github.com/riscv-software-src/riscv-isa-sim.git
-          cd riscv-isa-sim
-          git checkout v1.1.0
-          mkdir build
-          cd build
-          ../configure --prefix=/opt/riscv --with-isa=RV32IMFD --with-target=riscv32-unknown-elf
-          make
-          sudo make install
-          cd ../..
-          rm -rf riscv-isa-sim
-
-          # Installing riscv-pk
-          git clone https://github.com/riscv-software-src/riscv-pk.git
-          cd riscv-pk
-          git checkout 573c858d9071a2216537f71de651a814f76ee76d
-          mkdir build
-          cd build
-          ../configure --prefix=/opt/riscv --host=riscv64-unknown-elf --with-arch=rv32imfd --with-abi=ilp32d
-          make
-          sudo make install
 
       - name: Build and test
         id: test
         timeout-minutes: 1
         run: |
           ./test.sh compiler_tests
+
+      - name: Perm issue fix
+        if: success() || failure()
+        run: git config --global --add safe.directory "/__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}"
 
       - name: Upload test results
         uses: dorny/test-reporter@v1
