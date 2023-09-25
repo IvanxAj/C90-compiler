@@ -12,8 +12,7 @@ public:
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
-    // declarator have identifier so getIdentifier method
-    const std::string& getIdentifier() override;
+    const std::string& getIdentifier() const override;
 
 private:
     std::string identifier;

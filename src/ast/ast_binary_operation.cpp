@@ -13,21 +13,19 @@ Specifier BinaryOperation::getType(Context& context) const {
 }
 
 int BinaryOperation::prepLeft(std::ostream& os, Context& context, int destReg) const {
-    // TODO fix for chain of arithmetic operations e.g. ((a+b)+c)
-    // TODO what type is a function call??, should just get the type from any of the operands and run with it
     Specifier type = left->getType(context);
 
     int left_reg = -1;
 
     if (type == Specifier::_int) {
         left_reg = context.allocateReg();
-        if(right->getFuncCall()) {
+        if(right->isFuncCall()) {
             left_reg = 9; // s1 callee saved reg
         }
         std::cerr << "Left: Int type" << std::endl;
     } else if (type == Specifier::_double || type == Specifier::_float) {
         left_reg = context.allocateFloatReg();
-        if(right->getFuncCall()) {
+        if(right->isFuncCall()) {
             left_reg = 41; // fs1 callee saved reg
         }
         std::cerr << "Left: double/float type" << std::endl;

@@ -87,6 +87,8 @@ IS			        (u|U|l|L)*
 ")"		    	    { return(')'); }
 "{"             { return('{'); }
 "}"             { return('}'); }
+"["             { return('['); }
+"]"             { return(']'); }
 
 ";"             { return(';'); }
 ":"             { return(':'); }

@@ -122,13 +122,13 @@ declarator
     /* pointer direct_declarator - handle pointers here */
     ;
 
-// update to use FunctionDeclarator
+
 direct_declarator
     : IDENTIFIER                                    { $$ = new Declarator(*$1); delete $1; }
     | direct_declarator '(' ')'                     { $$ = new FuncDeclarator($1); }
     | direct_declarator '(' parameter_list ')'      { $$ = new FuncDeclarator($1, $3); }
     | direct_declarator '[' ']'                     { std::cerr << "Array decl"; }
-    | direct_declarator '[' constant_expression ']' { std::cerr << "Array decl"; }
+    | direct_declarator '[' constant_expression ']' { $$ = new ArrayDeclarator($1, $3); }
     ;
 
 parameter_list
@@ -305,7 +305,7 @@ postfix_expression
     : primary_expression                                        { $$ = $1; }
     | postfix_expression '(' ')'                                { $$ = new FunctionCall($1); }
     | postfix_expression '(' argument_expression_list ')'       { $$ = new FunctionCall($1, $3);}
-    | postfix_expression '[' expression ']'                     { std::cerr << "Array index"; }
+    | postfix_expression '[' expression ']'                     { $$ = new ArrayIndex($1, $3); }
     | postfix_expression T_INC_OP                               { $$ = new Increment($1);}
 	| postfix_expression T_DEC_OP                               { $$ = new Decrement($1);}
     ;

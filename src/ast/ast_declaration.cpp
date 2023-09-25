@@ -9,13 +9,32 @@ Declaration::~Declaration() {
 }
 
 int Declaration::getSize() const {
-    return typeSizes.at(type);
+
+    int array_size = init_declarator->getArraySize();
+    if (array_size == -1) {
+        // is a variable declaration (not an array)
+        return typeSizes.at(type);
+    }
+
+    // is an array with size > 0
+    return typeSizes.at(type) * array_size;
+
 }
 
 void Declaration::compile(std::ostream& os, Context& context, int destReg) const {
 
     std::string var_name = init_declarator->getIdentifier();
-    context.addVar(var_name, type);
-    init_declarator->compile(os, context, destReg);
+    if (init_declarator->getArraySize() != -1) {
+        // array declaration
+        int array_size = init_declarator->getArraySize();
+        // add to bindings with array name storing offset of a[0]
+        context.addArray(var_name, type, array_size);
 
+    } else {
+        // variable declaration
+        context.addVar(var_name, type);
+    }
+
+    // sort out initialisation
+    init_declarator->compile(os, context, destReg);
 };

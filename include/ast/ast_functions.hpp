@@ -8,14 +8,14 @@ class FunctionDefinition
 {
 // Three branches: type, declarator, compound statement
 public:
-    FunctionDefinition(Specifier _type, BaseDeclaration* _funcDeclarator, BaseStatement* _statements);
+    FunctionDefinition(Specifier _type, BaseDeclaration* _func_declarator, BaseStatement* _statements);
     ~FunctionDefinition();
 
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
     Specifier type;
-    BaseDeclaration* funcDeclarator;
+    BaseDeclaration* func_declarator;
     BaseStatement* statements;
 };
 
@@ -29,7 +29,7 @@ public:
     FuncDeclarator(BaseDeclaration* _declarator);
     ~FuncDeclarator();
 
-    const std::string& getIdentifier() override;
+    const std::string& getIdentifier() const override;
     int getSize() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
@@ -63,7 +63,7 @@ public:
     FunctionCall(BaseExpression* _id, List_Ptr _args);
     ~FunctionCall();
 
-    bool getFuncCall() const override;
+    bool isFuncCall() const override;
     Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 private:

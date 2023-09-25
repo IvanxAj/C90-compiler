@@ -1,7 +1,9 @@
-
+#include <stdio.h>
 int f();
 
 int main()
 {
-    return !(f()==92);
+    int c = f();
+    printf("%d\n", c);
+    return !(c==92);
 }

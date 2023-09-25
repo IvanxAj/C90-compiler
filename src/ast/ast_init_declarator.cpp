@@ -13,10 +13,13 @@ Init_Declarator::~Init_Declarator() {
     delete initialiser;
 }
 
-const std::string& Init_Declarator::getIdentifier() {
-    return declarator->getIdentifier();
+int Init_Declarator::getArraySize() const {
+    return declarator->getArraySize();
 }
 
+const std::string& Init_Declarator::getIdentifier() const {
+    return declarator->getIdentifier();
+}
 
 void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) const {
 
@@ -50,7 +53,6 @@ void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) c
         initialiser->compile(os, context, init_reg);
 
         int var_offset = context.getVarOffset(var_name);
-
 
         os << store_instruction << context.getMnemonic(init_reg) << ", " << var_offset << "(s0)" << std::endl;
 

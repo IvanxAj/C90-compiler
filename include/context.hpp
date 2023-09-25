@@ -205,6 +205,15 @@ struct Context
         return 1;
     }
 
+    void addArray(const std::string& array_name, Specifier type, int array_size) {
+        int var_size = typeSizes.at(type);
+        int total_array_size = array_size * var_size;
+
+        scopes.back().addLocalVar(array_name, type, local_var_offset - var_size);
+
+        local_var_offset -= total_array_size;
+    }
+
     /* ----------------------------------HANDLE SCOPES------------------------------------------- */
 
     // Create a new scope by adding a new stack frame - defaulted

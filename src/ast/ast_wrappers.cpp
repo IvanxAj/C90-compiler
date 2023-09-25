@@ -17,13 +17,21 @@ void ProgramRoot::compile(std::ostream& os, Context& context, int destReg) const
 }
 
 
-const std::string& BaseExpression::getIdentifier() {
-    static const std::string empty_string = "";
-    return empty_string;
+bool BaseExpression::isArray() const {
+    return false;
 }
 
-bool BaseExpression::getFuncCall() const {
-    return false;  // default implementation
+bool BaseExpression::isFuncCall() const {
+    return false;
+}
+
+int BaseExpression::getValue() const {
+    return -1;
+}
+
+const std::string& BaseExpression::getIdentifier() const {
+    static const std::string empty_string = "";
+    return empty_string;
 }
 
 Specifier BaseExpression::getType(Context& context) const {
@@ -32,20 +40,25 @@ Specifier BaseExpression::getType(Context& context) const {
     return Specifier::_int;
 }
 
-const std::string& BaseDeclaration::getIdentifier() {
-    static const std::string empty_string = "";
-    return empty_string;
-}
+
 int BaseDeclaration::getSize() const {
     return 0;
+}
+
+int BaseDeclaration::getArraySize() const {
+    return -1;
+}
+
+const std::string& BaseDeclaration::getIdentifier() const {
+    static const std::string empty_string = "";
+    return empty_string;
 }
 
 Specifier BaseDeclaration::getType(Context& context) const {
     return Specifier::_int;
 }
 
+
 int BaseStatement::getSize() const {
     return 0;
 }
-
-

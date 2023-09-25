@@ -7,8 +7,8 @@
 
 
 #include "ast/ast_node.hpp"
-#include "ast/ast_declarator.hpp"
 #include "ast/ast_wrappers.hpp"
+#include "ast/ast_declarator.hpp"
 #include "ast/ast_expressions.hpp"
 #include "ast/ast_statements.hpp"
 #include "ast/ast_primitives.hpp"
@@ -24,6 +24,7 @@
 #include "ast/ast_while.hpp"
 #include "ast/ast_jump_statement.hpp"
 #include "ast/ast_for.hpp"
+#include "ast/ast_array.hpp"
 
 #include "context.hpp"
 

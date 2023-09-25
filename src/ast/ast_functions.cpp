@@ -1,17 +1,17 @@
 #include "ast/ast_functions.hpp"
 
 // Three branches: type, declarator, compound statement
-FunctionDefinition::FunctionDefinition(Specifier _type, BaseDeclaration* _funcDeclarator, BaseStatement* _statements)
-    : type(_type), funcDeclarator(_funcDeclarator), statements(_statements) {}
+FunctionDefinition::FunctionDefinition(Specifier _type, BaseDeclaration* _func_declarator, BaseStatement* _statements)
+    : type(_type), func_declarator(_func_declarator), statements(_statements) {}
 
 FunctionDefinition::~FunctionDefinition() {
-    delete funcDeclarator;
+    delete func_declarator;
     delete statements;
 }
 
 void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg) const {
 
-    std::string func_name = funcDeclarator->getIdentifier();
+    std::string func_name = func_declarator->getIdentifier();
 
     context.saveFuncReturnType(func_name, type);
     if (type == Specifier::_float || type == Specifier::_double) {
@@ -29,7 +29,7 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     // call getSize on its children nodes - want to return size required by: local_vars, parameters
     // call calcStackSizez(local_var_size, param_size) - hardcode to 32 bytes for now
 
-    int param_list_size = funcDeclarator->getSize();
+    int param_list_size = func_declarator->getSize();
     std::cerr << "Param list size: " << param_list_size << std::endl;
 
     int statement_size = statements->getSize();
@@ -44,7 +44,7 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     os << "sw s1, " << stack_size - 12 << "(sp)" << std::endl;  // adjust the offset accordingly
     os << "addi s0,sp," << stack_size << std::endl;
 
-    funcDeclarator->compile(os, context, destReg);
+    func_declarator->compile(os, context, destReg);
 
     // handle statements
     statements->compile(os, context, destReg);
@@ -94,7 +94,7 @@ FuncDeclarator::~FuncDeclarator() {
     }
 }
 
-const std::string& FuncDeclarator::getIdentifier() {
+const std::string& FuncDeclarator::getIdentifier() const {
     return declarator->getIdentifier();
 }
 
@@ -203,7 +203,7 @@ FunctionCall::~FunctionCall() {
     }
 }
 
-bool FunctionCall::getFuncCall() const {
+bool FunctionCall::isFuncCall() const {
     return true;
 }
 

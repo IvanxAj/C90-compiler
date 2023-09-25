@@ -89,11 +89,11 @@
 - Refactored `JumpStatement` to use a `JumpType` enum to be more safe
 - Added a simple implementation for switch case, but doesn't behave properly with break yet. Case needs to be changed, such that it has a `case_start` label, which had been prepared by the previous case, which is what it branches to. Allows multiple statements after a case to work properly - which should then fix break.
 
-**19/09/23**
+**19/09/23** More operations
 - Added Unary operations and the other assignment operations (+= etc).
 - Due to the implementation of += etc, both `BinaryOperation` and `Assignment` had pointer to the left object, and so when deleting AST had to make sure only one of these objects were actually deleting the left object. Smart pointers would make this a lot easier, with reference counting, but had to use a kinda hacky fix to specifiy when the `BinaryOperation` actually had ownership, and let `Assignment` delete it.
 
-**21/09/23**
+**21/09/23** Start types
 - Fix switch case implementation, used earlier suggested method of having previous switch case define the next case label, which is what the condition branches to. Required refactoring context `LoopLabels` slightly, to support defining a `start_label`, with no `end_label`, and still having the other methods work fine.
 - Started types implementation, with the aim of supporting float and doubles. This required the use of a different set of 32 fp registers, which have been added to context, along with the mnemonics - extended the original data structure to reduce having to rewrite the same code.
 - Main focus was on adding relevant type checking to generate and use correct assembly operator + registers in:
@@ -101,4 +101,16 @@
   - Identifier (load with correct op based on type from bindings)
   - Arithmetic (allocate regs + use correct op based on type of left and right operands)
 
-**22/09/23**
+**22/09/23** Complete types
+- Function arguments of different types are stored in independent argument regs (a0...a7 and fa0...fa7), so changed implementation of arguments and parameters to use the correct regs
+- Fixed destReg to pass the correct reg based on type
+- Complete type support for float literals (double literals not supported)
+
+**23/09/23** Array
+- Array declarations need to know the actual size - have to add a `getValue()` to expressions, to allow compiler to allocate the correct space on stack
+- Added a more appropriate `getArraySize()` to `BaseDeclarations`, as `Declaration` needs to both differentiate between normal variables and arrays, as well as appropriately changing Context. This getArraySize() is then overriden in InitDeclarator, which can return the size of the array by calling getValue() on its expression object.
+- Array index:
+  - When used as an r-value, needs to load correct memory address based on index (handle in ArrayIndex)
+  - When used as an l-value, need to store to correct memory address based on index (handle in Assignment). However, at Assignment level, there is no easy way to differentiate between the l-value being a variable and an array (can't use getValue on ArrayIndex as the index could also be a variable, and would prefer not to have getValue assume multiple responsibilities). This lead to adding isArray() to BaseExpression, which should make other checks in code more readable as well
+  - Another issue with array index as an l-value, is that the index is required at the Assignment level, however the AST structure is Assignment expr1-> ArrayIndex->Index, and we don't know if the index is a variable or value, so can't just use getValue().
+  - I considered having a method unique to ArrayIndex, which is used to correctly get the index into a specific destReg, and can then be reused inside the compile method of ArrayIndex, as well as Assignment higher up. An alternative would be to add a getNode or similar method, which returns a specific Node to a higher level. Taking into account that handling arrays declared at a global scope would require more specific implementation, decided to go with returning the Index pointer. Only needed in this specific case, so is not a virtual function, and instead Assignment casts the l-value expression to an ArrayIndex object when it is determined as an array access, and therefore is an ArrayIndex object

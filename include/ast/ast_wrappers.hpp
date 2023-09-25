@@ -19,8 +19,10 @@ class BaseExpression
 {
 public:
     virtual ~BaseExpression() = default;
-    virtual const std::string& getIdentifier();
-    virtual bool getFuncCall() const;
+    virtual bool isArray() const;
+    virtual bool isFuncCall() const;
+    virtual int getValue() const;
+    virtual const std::string& getIdentifier() const;
     virtual Specifier getType(Context& context) const;
 };
 
@@ -31,8 +33,9 @@ class BaseDeclaration
 public:
 
     virtual ~BaseDeclaration() = default;
-    virtual const std::string& getIdentifier();
     virtual int getSize() const;
+    virtual int getArraySize() const;
+    virtual const std::string& getIdentifier() const;
     virtual Specifier getType(Context& context) const;
 
 };

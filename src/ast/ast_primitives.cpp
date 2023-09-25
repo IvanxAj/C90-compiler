@@ -4,6 +4,14 @@
 Number::Number(double _value, Specifier _type)
     : value(_value), type(_type) {}
 
+int Number::getValue() const {
+    if (type != Specifier::_int) {
+        std::cerr << "Number: Invalid type for getValue" << std::endl;
+        exit(1);
+    }
+    return value;
+}
+
 Specifier Number::getType(Context& context) const {
     return type;
 }
@@ -15,7 +23,7 @@ void Number::compile(std::ostream& os, Context& context, int destReg) const {
         uint32_t i;
     } float_cast;
 
-    int reg;
+    int reg = -1;
 
     switch(type) {
         case Specifier::_int:
@@ -32,7 +40,7 @@ void Number::compile(std::ostream& os, Context& context, int destReg) const {
             context.freeReg(reg);
             break;
         default:
-            std::cerr << "Number: Invalid data type" << std::endl;
+            std::cerr << "Number: Invalid literal data type" << std::endl;
             exit(1);
     }
 
@@ -49,7 +57,7 @@ Specifier Identifier::getType(Context& context) const {
     return context.getVarType(name);
 }
 
-const std::string& Identifier::getIdentifier() {
+const std::string& Identifier::getIdentifier() const {
     return name;
 }
 

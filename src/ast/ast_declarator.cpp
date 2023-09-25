@@ -2,11 +2,9 @@
 
 Declarator::Declarator(const std::string& _identifier) : identifier(_identifier) {}
 
-void Declarator::compile(std::ostream& os, Context& context, int destReg) const {
-    // TODO: handle parameters
-}
+void Declarator::compile(std::ostream& os, Context& context, int destReg) const { }
 
 // only declarator have identifier so getIdentifier method only for declarators
-const std::string& Declarator::getIdentifier() {
+const std::string& Declarator::getIdentifier() const {
     return identifier;
 }

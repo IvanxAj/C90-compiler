@@ -13,7 +13,8 @@ public:
 
     ~Init_Declarator();
 
-    const std::string& getIdentifier() override;
+    int getArraySize() const override;
+    const std::string& getIdentifier() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
