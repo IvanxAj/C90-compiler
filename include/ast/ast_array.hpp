@@ -34,3 +34,15 @@ private:
     BaseExpression* array_id;
     BaseExpression* index;
 };
+
+class ArrayInitialiser
+    : public BaseExpression
+{
+public:
+    ArrayInitialiser(List_Ptr _initialiser_list);
+    ~ArrayInitialiser();
+
+    void compile(std::ostream& os, Context& context, int destReg) const override;
+private:
+    List_Ptr initialiser_list;
+};

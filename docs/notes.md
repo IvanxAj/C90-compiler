@@ -106,11 +106,18 @@
 - Fixed destReg to pass the correct reg based on type
 - Complete type support for float literals (double literals not supported)
 
-**23/09/23** Array
+**24/09/23** Array
 - Array declarations need to know the actual size - have to add a `getValue()` to expressions, to allow compiler to allocate the correct space on stack
 - Added a more appropriate `getArraySize()` to `BaseDeclarations`, as `Declaration` needs to both differentiate between normal variables and arrays, as well as appropriately changing Context. This getArraySize() is then overriden in InitDeclarator, which can return the size of the array by calling getValue() on its expression object.
 - Array index:
-  - When used as an r-value, needs to load correct memory address based on index (handle in ArrayIndex)
-  - When used as an l-value, need to store to correct memory address based on index (handle in Assignment). However, at Assignment level, there is no easy way to differentiate between the l-value being a variable and an array (can't use getValue on ArrayIndex as the index could also be a variable, and would prefer not to have getValue assume multiple responsibilities). This lead to adding isArray() to BaseExpression, which should make other checks in code more readable as well
-  - Another issue with array index as an l-value, is that the index is required at the Assignment level, however the AST structure is Assignment expr1-> ArrayIndex->Index, and we don't know if the index is a variable or value, so can't just use getValue().
-  - I considered having a method unique to ArrayIndex, which is used to correctly get the index into a specific destReg, and can then be reused inside the compile method of ArrayIndex, as well as Assignment higher up. An alternative would be to add a getNode or similar method, which returns a specific Node to a higher level. Taking into account that handling arrays declared at a global scope would require more specific implementation, decided to go with returning the Index pointer. Only needed in this specific case, so is not a virtual function, and instead Assignment casts the l-value expression to an ArrayIndex object when it is determined as an array access, and therefore is an ArrayIndex object
+  - When used as an r-value, needs to load correct memory address based on index (handle in `ArrayIndex`)
+  - When used as an l-value, need to store to correct memory address based on index (handle in `Assignment`). However, at `Assignment` level, there is no easy way to differentiate between the l-value being a variable and an array (can't use getValue on ArrayIndex as the index could also be a variable, and would prefer not to have getValue assume multiple responsibilities). This lead to adding `isArray()` to `BaseExpression`, which should make other checks in code more readable as well
+  - Another issue with array index as an l-value, is that the index is required at the `Assignment` level, however the AST structure is Assignment expr1-> ArrayIndex->Index, and we don't know if the index is a variable or value, so can't just use `getValue()`.
+  - I considered having a method unique to `ArrayIndex`, which is used to correctly get the index into a specific destReg, and can then be reused inside the compile method of ArrayIndex, as well as Assignment higher up. An alternative would be to add a getNode or similar method, which returns a specific Node to a higher level. Taking into account that handling arrays declared at a global scope would require more specific implementation, decided to go with returning the Index pointer. Only needed in this specific case, so is not a virtual function, and instead `Assignment` casts the l-value expression to an `ArrayIndex` object when it is determined as an array access, and therefore is an ArrayIndex object
+
+**26/09/23**
+- Completed most of array implementation, but still need to handle initialiser lists.
+- Main idea is to call compile on each of the initialiser objects in the list, and then store in the correct location in memory. However the array identifier, which is needed to find correct memory location + offset, is only known at the InitDeclarator level. This leaves two options:
+  - Fetch the initialiser list object directly and handle all implementation at InitDeclarator level
+  - InitDeclarator stores the memory address of array object in a certain register, which is then passed as the argument to compile on the initialiser list object, which can then offset from this reg (which has address of array element 0)
+- Proceeded with option 2, which seemed to be cleaner (have not considered global scope at this point)

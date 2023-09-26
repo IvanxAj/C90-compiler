@@ -23,7 +23,24 @@ const std::string& Init_Declarator::getIdentifier() const {
 
 void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) const {
 
-    if (initialiser !=  nullptr) {
+    if (initialiser == nullptr) return;
+
+    if (getArraySize() != -1) {
+        // array initialisation
+        std::string array_name = declarator->getIdentifier();
+        int array_address_reg = context.allocateReg();
+        context.useReg(array_address_reg);
+
+        // load the memory address of element 0 into the reg
+        int base_offset = context.getVarOffset(array_name);
+        os << "addi " << context.getMnemonic(array_address_reg) << ", " << "s0, " << base_offset << std::endl;
+        initialiser->compile(os, context, array_address_reg);
+
+        context.freeReg(array_address_reg);
+
+    } else {
+        // variable initialisation
+
         std::string var_name = declarator->getIdentifier();
         Specifier type = context.getVarType(var_name);
 
@@ -58,4 +75,5 @@ void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) c
 
         context.freeReg(init_reg);
     }
+
 }

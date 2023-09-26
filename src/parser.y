@@ -49,7 +49,7 @@
 %type <node>   external_declaration function_definition
 %type <node>   declaration
 
-%type <node_list> translation_unit statement_list declaration_list parameter_list argument_expression_list
+%type <node_list> translation_unit statement_list declaration_list parameter_list argument_expression_list initializer_list
 
 %type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration
 %type <base_statement> statement expression_statement jump_statement compound_statement selection_statement iteration_statement
@@ -142,7 +142,12 @@ parameter_declaration
 
 initializer
 	: assignment_expression { $$ = $1;}
-	/* | '{' initializer_list '}' { $$ = new ArrayInitializer($2);}  */
+	| '{' initializer_list '}' { $$ = new ArrayInitialiser($2);}
+	;
+
+initializer_list
+	: initializer                       { $$ = createList($1); }
+	| initializer_list ',' initializer  { $$ = appendList($1, $3); }
 	;
 
 compound_statement

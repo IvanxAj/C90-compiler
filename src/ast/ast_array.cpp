@@ -76,3 +76,60 @@ void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const 
     context.freeReg(index_reg);
 
 }
+
+
+ArrayInitialiser::ArrayInitialiser(List_Ptr _initialiser_list)
+    : initialiser_list(_initialiser_list) {}
+
+ArrayInitialiser::~ArrayInitialiser() {
+    for (auto node: *initialiser_list) {
+        delete node;
+    }
+    delete initialiser_list;
+};
+
+void ArrayInitialiser::compile(std::ostream& os, Context& context, int destReg) const {
+
+    // destReg holds the mem address of element 0 of array
+    // all types inside initialiser list should be the same, and should match the array type for correct code
+    auto first_init = dynamic_cast<const BaseExpression*>(initialiser_list->front());
+    Specifier array_type = first_init->getType(context);
+    int var_size = typeSizes.at(array_type);
+
+    int init_reg = -1;
+    std::string store_instruction;
+    switch(array_type) {
+        case Specifier::_int:
+            init_reg = context.allocateReg();
+            store_instruction = "sw ";
+            break;
+        case Specifier::_float:
+            init_reg = context.allocateFloatReg();
+            store_instruction = "fsw ";
+            break;
+        case Specifier::_double:
+            init_reg = context.allocateFloatReg();
+            store_instruction = "fsd ";
+            break;
+        default:
+            std::cerr << "Initialiser: Invalid type" << std::endl;
+            exit(1);
+    }
+
+    int index = 0;
+    for (auto init : *initialiser_list) {
+
+        context.useReg(init_reg);
+        init->compile(os, context, init_reg);
+
+        int element_offset = var_size * index;
+
+        // store the initializer value into the array element
+        os << store_instruction << context.getMnemonic(init_reg) << ", " << -element_offset <<"(" << context.getMnemonic(destReg) << ")" << std::endl;
+
+        context.freeReg(init_reg);
+        index++;
+    }
+
+}
+
