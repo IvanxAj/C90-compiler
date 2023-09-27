@@ -21,7 +21,7 @@ bool BaseExpression::isArray() const {
     return false;
 }
 
-bool BaseExpression::isPointer() const {
+bool BaseExpression::isDerefPointer() const {
     return false;
 }
 

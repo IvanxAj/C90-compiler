@@ -8,7 +8,7 @@ UnaryOp::~UnaryOp() {
     delete expr;
 }
 
-bool UnaryOp::isPointer() const {
+bool UnaryOp::isDerefPointer() const {
     return op==UnaryOperator::Deref ? true : false;
 }
 

@@ -30,7 +30,7 @@ void Declaration::compile(std::ostream& os, Context& context, int destReg) const
         // add to bindings with array name storing offset of a[0]
         context.addArray(var_name, type, array_size);
 
-    } else if (init_declarator->isPointer() == true) {
+    } else if (init_declarator->isPointer()) {
         // pointer declaration
         // - type of the pointer = type of what its pointing to + sets isPointer to true
         context.addVar(var_name, type, true);

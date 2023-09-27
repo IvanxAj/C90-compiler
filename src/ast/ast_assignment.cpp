@@ -39,7 +39,7 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
     expr2->compile(os, context, right_reg);
 
     // at this point r-value is in right_reg
-    if(expr1->isPointer()) {
+    if(expr1->isDerefPointer()) {
         // l value is a dereferenced pointer eg int *p = &a; *p = 20;
         int address_reg = context.allocateReg();
         context.useReg(address_reg);
@@ -49,7 +49,7 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
 
         context.freeReg(address_reg);
 
-    } else if ( var.isPointer == true) {
+    } else if (var.is_pointer) {
         // l value variable is pointer eg int *p; p = &a;
         // cant use normal variable one as pointer variables store type of what they are pointing to
         os << "lw " << context.getMnemonic(right_reg) << ", " << var.offset << "(s0)" << std::endl;

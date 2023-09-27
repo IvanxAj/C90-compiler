@@ -21,7 +21,7 @@ public:
     virtual ~BaseExpression() = default;
 
     virtual bool isArray() const;
-    virtual bool isPointer() const;
+    virtual bool isDerefPointer() const;
     virtual bool isFuncCall() const;
 
     virtual int getValue() const;

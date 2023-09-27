@@ -178,6 +178,8 @@ void ParamDeclaration::compile(std::ostream& os, Context& context, int destReg) 
     // which is equivalent to callee 0(s0), 4(s0)
     if (param_offset == 1) return;
 
+    // Pointers use standard int regs + operations
+    // even if param is float *a - use the lw instruction and default regs
     Specifier effective_type = is_pointer ? Specifier::_int : type;
 
     switch(effective_type) {
