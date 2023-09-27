@@ -202,17 +202,19 @@ struct Context
         return local_var_offset;
     }
 
-    int addParam(const std::string& name, Specifier type, int param_index) {
+    int addParam(const std::string& name, Specifier type, int param_index, bool isPointer = false) {
         int param_size = typeSizes.at(type);
+        if (isPointer == true) param_size = 4;
+
         if (param_index < 8) {
             param_offset -= param_size;
-            scopes.back().addLocalVar(name, type, param_offset);
+            scopes.back().addLocalVar(name, type, param_offset, isPointer);
             return param_offset;
         }
 
-        scopes.back().addLocalVar(name, type, param_offset_excess);
+        scopes.back().addLocalVar(name, type, param_offset_excess, isPointer);
         param_offset_excess += param_size;
-        // 1 indicates that the param was not taken from register
+        // 1 indicates that the param was not taken from register, and is already on the stack
         return 1;
     }
 
