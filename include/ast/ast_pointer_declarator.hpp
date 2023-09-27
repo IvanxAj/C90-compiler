@@ -1,18 +1,18 @@
 #pragma once
 
-#include "ast_node.hpp"
 #include "ast_wrappers.hpp"
 
-class Declarator
+class PointerDeclarator
     : public BaseDeclaration
 {
-// printing identifier is behaviour of functiondef not declarator -> pass up
 public:
-    Declarator(const std::string& _identifier);
+    PointerDeclarator(BaseDeclaration* _identifier);
+    ~PointerDeclarator();
 
+    bool isPointer() const override;
     const std::string& getIdentifier() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:
-    std::string identifier;
+    BaseDeclaration* identifier;
 };

@@ -68,8 +68,8 @@ struct Scope
 {
     std::unordered_map<std::string, Variable> bindings;     // Track variables in scope
 
-    void addLocalVar(const std::string& name, Specifier type, int offset) {
-        bindings[name] = Variable(type, offset);
+    void addLocalVar(const std::string& name, Specifier type, int offset, bool isPointer = false) {
+        bindings[name] = Variable(type, offset, isPointer);
     }
 
     Variable getLocalVar(const std::string& name) const {
@@ -193,10 +193,12 @@ struct Context
         return Specifier::INVALID_TYPE;
     }
 
-    int addVar(const std::string& name, Specifier type) {
+    int addVar(const std::string& name, Specifier type, bool isPointer = false) {
         int var_size = typeSizes.at(type);
+        // type of a pointer, is the type of variable it is pointing to - need to manually set 4
+        if (isPointer == true) var_size = 4;
         local_var_offset -= var_size;
-        scopes.back().addLocalVar(name, type, local_var_offset);
+        scopes.back().addLocalVar(name, type, local_var_offset, isPointer);
         return local_var_offset;
     }
 
@@ -324,6 +326,13 @@ struct Context
         }
     }
 
+    void printVariableInfo(const std::string& func_name, const Variable& var) const {
+        std::cerr << "Variable:" << func_name << "\n";
+        std::cerr << "  Type: " << specifierToString(var.type) << "\n";
+        std::cerr << "  Offset: " << var.offset << "\n";
+        std::cerr << "  Is Pointer: " << (var.isPointer ? "Yes" : "No") << "\n";
+    }
+
     void debugScope() const {
         std::cerr << "------ DEBUGGING SCOPES ------" << std::endl;
 
@@ -332,7 +341,8 @@ struct Context
             for (const auto& binding : scopes[i].bindings) {
                 std::cerr << "  Name: " << binding.first
                           << ", Type: " << specifierToString(binding.second.type)
-                          << ", Offset: " << binding.second.offset << std::endl;
+                          << ", Offset: " << binding.second.offset
+                          << ", isPointer: " << binding.second.isPointer << std::endl;
             }
             std::cerr << std::endl;
         }

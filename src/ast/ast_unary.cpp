@@ -12,6 +12,10 @@ bool UnaryOp::isPointer() const {
     return op==UnaryOperator::Deref ? true : false;
 }
 
+const std::string& UnaryOp::getIdentifier() const {
+    return expr->getIdentifier();
+}
+
 void UnaryOp::compile(std::ostream& os, Context& context, int destReg) const {
 
     switch(op)

@@ -46,6 +46,8 @@ void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) c
         int init_reg;
         std::string store_instruction;
 
+        if(isPointer() == true) type = Specifier::_int;
+
         switch(type) {
             case Specifier::_int:
                 init_reg = context.allocateReg();

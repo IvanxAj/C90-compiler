@@ -10,8 +10,8 @@ Assignment::~Assignment() {
 
 void Assignment::compile(std::ostream& os, Context& context, int destReg) const {
     std::string var_name = expr1->getIdentifier();
-
     Variable var = context.getVar(var_name);
+    // context.printVariableInfo(var_name, var);
     int var_size = typeSizes.at(var.type);
 
     int right_reg = -1;

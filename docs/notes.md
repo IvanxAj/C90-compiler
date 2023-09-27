@@ -136,3 +136,6 @@ Pointers
   }
   ```
   The variable b needs to store both that it is a float type, and is a pointer. Most reasonable method was to add isPointer as a field to the Variable struct, and default initialise to false, when constructed with just two args - minimising the impact on the rest of the codebase.
+- Pointer declaration implementation required knowledge of whether a declarator was a pointer or not, so added isPointer to BaseDeclaration.
+  - Declaration objects checks this, and adds to bindings with isPointer set to true to indicate that a certain variable is a pointer.
+  - InitDeclarator also checks to allocate the correct reg + store instruction (normal int regs)
