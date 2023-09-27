@@ -8,6 +8,14 @@ UnaryOp::~UnaryOp() {
     delete expr;
 }
 
+bool UnaryOp::isDerefPointer() const {
+    return op==UnaryOperator::Deref ? true : false;
+}
+
+const std::string& UnaryOp::getIdentifier() const {
+    return expr->getIdentifier();
+}
+
 void UnaryOp::compile(std::ostream& os, Context& context, int destReg) const {
 
     switch(op)
@@ -29,15 +37,23 @@ void UnaryOp::compile(std::ostream& os, Context& context, int destReg) const {
             os << "not " << context.getMnemonic(destReg) << ", " << context.getMnemonic(destReg) << std::endl;
             break;
         case UnaryOperator::Deref:
-            // Implement dereference logic
-            std::cerr << "Deref operator not supported yet" << std::endl;
+        {
+            // puts value that is being pointed to into destReg
+            std::string var_name = expr->getIdentifier();
+            int offset = context.getVarOffset(var_name);
+
+            os << "lw " << context.getMnemonic(destReg) << ", " << offset << "(s0)" << std::endl;
+            os << "lw " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(destReg) << ")" << std::endl;
+
             break;
+        }
         case UnaryOperator::AddressOf:
-            // Implement address-of logic
+        {
             std::string var_name = expr->getIdentifier();
             int offset = context.getVarOffset(var_name);
             os << "addi " << context.getMnemonic(destReg) << ", s0, " << offset << std::endl;
             break;
+        }
     }
 
 };

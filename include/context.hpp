@@ -50,11 +50,12 @@ struct Variable
 
     Specifier type;     // Type of variable - only support int for now
     int offset;         // Offset from frame pointer
+    bool is_pointer;    // Default false
 
-    Variable(): type(Specifier::_int), offset(0) {}
+    Variable(): type(Specifier::_int), offset(0), is_pointer(false) {}
 
-    Variable(Specifier _type, int _offset)
-        : type(_type), offset(_offset) {}
+    Variable(Specifier _type, int _offset, bool _isPointer = false)
+        : type(_type), offset(_offset), is_pointer(_isPointer) {}
 
 };
 
@@ -67,8 +68,8 @@ struct Scope
 {
     std::unordered_map<std::string, Variable> bindings;     // Track variables in scope
 
-    void addLocalVar(const std::string& name, Specifier type, int offset) {
-        bindings[name] = Variable(type, offset);
+    void addLocalVar(const std::string& name, Specifier type, int offset, bool isPointer = false) {
+        bindings[name] = Variable(type, offset, isPointer);
     }
 
     Variable getLocalVar(const std::string& name) const {
@@ -165,6 +166,14 @@ struct Context
 
     /* ----------------------------------HANDLE VARS------------------------------------------- */
 
+    Variable getVar(const std::string& name) {
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+            Variable var = it->getLocalVar(name);
+            if (var.offset != -1) return var;
+        }
+        return Variable(Specifier::INVALID_TYPE, -1);
+    }
+
     int getVarOffset(const std::string& name) {
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
             int offset = it->getLocalVar(name).offset;
@@ -184,24 +193,28 @@ struct Context
         return Specifier::INVALID_TYPE;
     }
 
-    int addVar(const std::string& name, Specifier type) {
+    int addVar(const std::string& name, Specifier type, bool is_pointer = false) {
         int var_size = typeSizes.at(type);
+        // type of a pointer, is the type of variable it is pointing to - need to manually set 4
+        if (is_pointer == true) var_size = 4;
         local_var_offset -= var_size;
-        scopes.back().addLocalVar(name, type, local_var_offset);
+        scopes.back().addLocalVar(name, type, local_var_offset, is_pointer);
         return local_var_offset;
     }
 
-    int addParam(const std::string& name, Specifier type, int param_index) {
+    int addParam(const std::string& name, Specifier type, int param_index, bool is_pointer = false) {
         int param_size = typeSizes.at(type);
+        if (is_pointer == true) param_size = 4;
+
         if (param_index < 8) {
             param_offset -= param_size;
-            scopes.back().addLocalVar(name, type, param_offset);
+            scopes.back().addLocalVar(name, type, param_offset, is_pointer);
             return param_offset;
         }
 
-        scopes.back().addLocalVar(name, type, param_offset_excess);
+        scopes.back().addLocalVar(name, type, param_offset_excess, is_pointer);
         param_offset_excess += param_size;
-        // 1 indicates that the param was not taken from register
+        // 1 indicates that the param was not taken from register, and is already on the stack
         return 1;
     }
 
@@ -315,6 +328,13 @@ struct Context
         }
     }
 
+    void printVariableInfo(const std::string& func_name, const Variable& var) const {
+        std::cerr << "Variable:" << func_name << "\n";
+        std::cerr << "  Type: " << specifierToString(var.type) << "\n";
+        std::cerr << "  Offset: " << var.offset << "\n";
+        std::cerr << "  Is Pointer: " << (var.is_pointer ? "Yes" : "No") << "\n";
+    }
+
     void debugScope() const {
         std::cerr << "------ DEBUGGING SCOPES ------" << std::endl;
 
@@ -323,7 +343,8 @@ struct Context
             for (const auto& binding : scopes[i].bindings) {
                 std::cerr << "  Name: " << binding.first
                           << ", Type: " << specifierToString(binding.second.type)
-                          << ", Offset: " << binding.second.offset << std::endl;
+                          << ", Offset: " << binding.second.offset
+                          << ", Pointer: " << binding.second.is_pointer << std::endl;
             }
             std::cerr << std::endl;
         }

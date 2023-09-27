@@ -121,3 +121,21 @@
   - Fetch the initialiser list object directly and handle all implementation at InitDeclarator level
   - InitDeclarator stores the memory address of array object in a certain register, which is then passed as the argument to compile on the initialiser list object, which can then offset from this reg (which has address of array element 0)
 - Proceeded with option 2, which seemed to be cleaner (have not considered global scope at this point)
+
+Pointers
+- Dereferenced pointer (when used as an r-value), just loads the variable pointed to by the pointer - handle type later
+- Dereferenced pointer (when used as an l-value), has to be handled in assignment. Now need to differentiate between pointers and other objects too.
+- Initially considered adding pointer as a Specifier type, but that might require different int_ptr and float_ptr, and would also break existing switch statements
+- Consider code snippet:
+  ```C
+  int f()
+  {
+      float a = 5.0;
+      float* b = &a;
+      return *b;
+  }
+  ```
+  The variable b needs to store both that it is a float type, and is a pointer. Most reasonable method was to add isPointer as a field to the Variable struct, and default initialise to false, when constructed with just two args - minimising the impact on the rest of the codebase.
+- Pointer declaration implementation required knowledge of whether a declarator was a pointer or not, so added isPointer to BaseDeclaration.
+  - Declaration objects checks this, and adds to bindings with isPointer set to true to indicate that a certain variable is a pointer.
+  - InitDeclarator also checks to allocate the correct reg + store instruction (normal int regs)

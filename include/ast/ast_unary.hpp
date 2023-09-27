@@ -18,6 +18,8 @@ public:
     UnaryOp(UnaryOperator _op, BaseExpression* _expr);
     ~UnaryOp();
 
+    bool isDerefPointer() const override;
+    const std::string& getIdentifier() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:

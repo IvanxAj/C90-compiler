@@ -133,7 +133,8 @@ void FuncDeclarator::compile(std::ostream& os, Context& context, int destReg) co
         for (auto param : *param_list) {
 
             // TODO param_no above 8 should be handled using the stack instead of registers
-            Specifier param_type = dynamic_cast<const BaseDeclaration*>(param)->getType(context);
+            auto param_object = dynamic_cast<const BaseDeclaration*>(param);
+            Specifier param_type = param_object->isPointer() ? Specifier::_int : param_object->getType(context);
             if (param_type == Specifier::_int) {
                 param->compile(os, context, int_param_count);
                 int_param_count++;
@@ -153,6 +154,10 @@ ParamDeclaration::~ParamDeclaration() {
     delete declarator;
 }
 
+bool ParamDeclaration::isPointer() const {
+    return declarator->isPointer();
+}
+
 int ParamDeclaration::getSize() const {
     return typeSizes.at(type);
 }
@@ -165,14 +170,19 @@ void ParamDeclaration::compile(std::ostream& os, Context& context, int destReg) 
 
     int param_index = destReg;
     std::string var_name = declarator->getIdentifier();
+    bool is_pointer = declarator->isPointer();
 
-    int param_offset = context.addParam(var_name, type, param_index);
+    int param_offset = context.addParam(var_name, type, param_index, is_pointer);
 
     // params that didn't fit are stored at bottom of calller stack frame 0(sp), 4(sp)...
     // which is equivalent to callee 0(s0), 4(s0)
     if (param_offset == 1) return;
 
-    switch(type) {
+    // Pointers use standard int regs + operations
+    // even if param is float *a - use the lw instruction and default regs
+    Specifier effective_type = is_pointer ? Specifier::_int : type;
+
+    switch(effective_type) {
         case(Specifier::_int):
             os << "sw " << context.getMnemonic(10 + param_index) << ", " << param_offset << "(s0)" << std::endl;
             break;

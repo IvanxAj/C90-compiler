@@ -112,22 +112,25 @@ type_specifier
     ;
 
 init_declarator
-	: declarator                       { $$ = new Init_Declarator($1); }
+	: declarator                       { $$ = $1; }
 	| declarator '=' initializer       { $$ = new Init_Declarator($1, $3); }
 	;
 
  /* name of stuff (variable / function etc) */
 declarator
-    : direct_declarator { $$ = $1; }
-    /* pointer direct_declarator - handle pointers here */
+    : direct_declarator             { $$ = $1; }
+    | pointer direct_declarator     { $$ = new PointerDeclarator($2); }
     ;
 
+pointer
+	: '*'
+    ;
 
 direct_declarator
     : IDENTIFIER                                    { $$ = new Declarator(*$1); delete $1; }
     | direct_declarator '(' ')'                     { $$ = new FuncDeclarator($1); }
     | direct_declarator '(' parameter_list ')'      { $$ = new FuncDeclarator($1, $3); }
-    | direct_declarator '[' ']'                     { std::cerr << "Array decl"; }
+    | direct_declarator '[' ']'                     { std::cerr << "Array decl no size \n"; }
     | direct_declarator '[' constant_expression ']' { $$ = new ArrayDeclarator($1, $3); }
     ;
 
