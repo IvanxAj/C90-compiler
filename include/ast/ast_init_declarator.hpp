@@ -13,6 +13,7 @@ public:
 
     ~Init_Declarator();
 
+    bool isPointer() const override;
     int getArraySize() const override;
     const std::string& getIdentifier() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;

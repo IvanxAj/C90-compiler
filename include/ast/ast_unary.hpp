@@ -18,6 +18,7 @@ public:
     UnaryOp(UnaryOperator _op, BaseExpression* _expr);
     ~UnaryOp();
 
+    bool isPointer() const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:

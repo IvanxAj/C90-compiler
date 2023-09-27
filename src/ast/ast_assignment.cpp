@@ -10,14 +10,14 @@ Assignment::~Assignment() {
 
 void Assignment::compile(std::ostream& os, Context& context, int destReg) const {
     std::string var_name = expr1->getIdentifier();
-    int offset = context.getVarOffset(var_name);
-    Specifier type = context.getVarType(var_name);
-    int var_size = typeSizes.at(type);
+
+    Variable var = context.getVar(var_name);
+    int var_size = typeSizes.at(var.type);
 
     int right_reg = -1;
     std::string store_instruction;
 
-    switch(type) {
+    switch(var.type) {
         case Specifier::_int:
             right_reg = context.allocateReg();
             store_instruction = "sw ";
@@ -39,9 +39,24 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
     expr2->compile(os, context, right_reg);
 
     // at this point r-value is in right_reg
-    if (!expr1->isArray()) {
+    if(expr1->isPointer()) {
+        // l value is a dereferenced pointer eg int *p = &a; *p = 20;
+        int address_reg = context.allocateReg();
+        context.useReg(address_reg);
+
+        os << "lw " << context.getMnemonic(address_reg) << ", " << var.offset << "(s0)" << std::endl;
+        os << store_instruction << context.getMnemonic(right_reg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
+
+        context.freeReg(address_reg);
+
+    } else if ( var.isPointer == true) {
+        // l value variable is pointer eg int *p; p = &a;
+        // cant use normal variable one as pointer variables store type of what they are pointing to
+        os << "lw " << context.getMnemonic(right_reg) << ", " << var.offset << "(s0)" << std::endl;
+
+    } else if (!expr1->isArray()) {
         // l-value is a variable
-        os << store_instruction << context.getMnemonic(right_reg) << ", " << offset << "(s0)" << std::endl;
+        os << store_instruction << context.getMnemonic(right_reg) << ", " << var.offset << "(s0)" << std::endl;
 
     } else {
         // l-value is an array element/index a[i] = 5;
@@ -55,13 +70,12 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
 
         os << "slli " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << log2(var_size) << std::endl;
         os << "sub " << context.getMnemonic(index_reg) << ", s0, " << context.getMnemonic(index_reg) << std::endl;
-        os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << offset << std::endl;
+        os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << var.offset << std::endl;
 
         os << store_instruction << context.getMnemonic(right_reg) << ", " << "0(" << context.getMnemonic(index_reg) << ")" << std::endl;
 
         context.freeReg(index_reg);
     }
-
 
     context.freeReg(right_reg);
 

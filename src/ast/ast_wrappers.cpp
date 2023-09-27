@@ -21,6 +21,10 @@ bool BaseExpression::isArray() const {
     return false;
 }
 
+bool BaseExpression::isPointer() const {
+    return false;
+}
+
 bool BaseExpression::isFuncCall() const {
     return false;
 }
@@ -40,6 +44,10 @@ Specifier BaseExpression::getType(Context& context) const {
     return Specifier::_int;
 }
 
+
+bool BaseDeclaration::isPointer() const {
+    return false;
+}
 
 int BaseDeclaration::getSize() const {
     return 0;

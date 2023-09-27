@@ -5,12 +5,13 @@
 Init_Declarator::Init_Declarator(BaseDeclaration* _declarator, BaseExpression* _initialiser)
     : declarator(_declarator), initialiser(_initialiser) {}
 
-Init_Declarator::Init_Declarator(BaseDeclaration* _declarator)
-    : declarator(_declarator), initialiser(nullptr) {}
-
 Init_Declarator::~Init_Declarator() {
     delete declarator;
     delete initialiser;
+}
+
+bool Init_Declarator::isPointer() const {
+    return declarator->isPointer();
 }
 
 int Init_Declarator::getArraySize() const {
@@ -22,8 +23,6 @@ const std::string& Init_Declarator::getIdentifier() const {
 }
 
 void Init_Declarator::compile(std::ostream& os, Context& context, int destReg) const {
-
-    if (initialiser == nullptr) return;
 
     if (getArraySize() != -1) {
         // array initialisation

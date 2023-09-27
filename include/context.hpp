@@ -50,11 +50,12 @@ struct Variable
 
     Specifier type;     // Type of variable - only support int for now
     int offset;         // Offset from frame pointer
+    bool isPointer;     // Default false
 
-    Variable(): type(Specifier::_int), offset(0) {}
+    Variable(): type(Specifier::_int), offset(0), isPointer(false) {}
 
-    Variable(Specifier _type, int _offset)
-        : type(_type), offset(_offset) {}
+    Variable(Specifier _type, int _offset, bool _isPointer = false)
+        : type(_type), offset(_offset), isPointer(_isPointer) {}
 
 };
 
@@ -164,6 +165,14 @@ struct Context
     }
 
     /* ----------------------------------HANDLE VARS------------------------------------------- */
+
+    Variable getVar(const std::string& name) {
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+            Variable var = it->getLocalVar(name);
+            if (var.offset != -1) return var;
+        }
+        return Variable(Specifier::INVALID_TYPE, -1);
+    }
 
     int getVarOffset(const std::string& name) {
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {

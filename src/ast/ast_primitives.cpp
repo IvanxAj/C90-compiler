@@ -63,17 +63,17 @@ const std::string& Identifier::getIdentifier() const {
 
 void Identifier::compile(std::ostream& os, Context& context, int destReg) const {
 
-    Specifier type = context.getVarType(name);
+    Variable var = context.getVar(name);
 
-    switch(type) {
+    switch(var.type) {
         case Specifier::_int:
-            os << "lw " << context.getMnemonic(destReg) << ", " << context.getVarOffset(name) << "(s0)" << std::endl;
+            os << "lw " << context.getMnemonic(destReg) << ", " << var.offset << "(s0)" << std::endl;
             break;
         case Specifier::_double:
-            os << "fld " << context.getMnemonic(destReg) << ", " << context.getVarOffset(name) << "(s0)" << std::endl;
+            os << "fld " << context.getMnemonic(destReg) << ", " << var.offset << "(s0)" << std::endl;
             break;
         case Specifier::_float:
-            os << "flw " << context.getMnemonic(destReg) << ", " << context.getVarOffset(name) << "(s0)" << std::endl;
+            os << "flw " << context.getMnemonic(destReg) << ", " << var.offset << "(s0)" << std::endl;
             break;
         default:
             std::cerr << "Identifier: Invalid variable type" << std::endl;

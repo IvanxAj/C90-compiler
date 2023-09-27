@@ -45,9 +45,9 @@ const BaseExpression* ArrayIndex::getIndex() const {
 
 void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const {
     std::string array_name = getIdentifier();
-    Specifier array_type = context.getVarType(array_name);
-    int array_offset = context.getVarOffset(array_name);
-    int var_size = typeSizes.at(array_type);
+    Variable var = context.getVar(array_name);
+
+    int var_size = typeSizes.at(var.type);
 
     // TODO: handle arrays declared at global scope
     int index_reg = context.allocateReg();
@@ -56,9 +56,9 @@ void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const 
 
     os << "slli " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << log2(var_size) << std::endl;
     os << "sub " << context.getMnemonic(index_reg) << ", s0, " << context.getMnemonic(index_reg) << std::endl;
-    os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << array_offset << std::endl;
+    os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << var.offset << std::endl;
 
-    switch(array_type) {
+    switch(var.type) {
         case Specifier::_int:
             os << "lw " << context.getMnemonic(destReg) << ", 0(" << context.getMnemonic(index_reg) << ") " << std::endl;
             break;
