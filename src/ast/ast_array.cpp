@@ -44,21 +44,33 @@ const BaseExpression* ArrayIndex::getIndex() const {
 }
 
 void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const {
+    // Get variable info
     std::string array_name = getIdentifier();
     Variable var = context.getVar(array_name);
+    Specifier array_type = var.type;
 
-    int var_size = typeSizes.at(var.type);
+    int var_size = typeSizes.at(array_type);
 
     // TODO: handle arrays declared at global scope
+    // Allocate and use register for index
     int index_reg = context.allocateReg();
     context.useReg(index_reg);
     index->compile(os, context, index_reg);
-
     os << "slli " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << log2(var_size) << std::endl;
-    os << "sub " << context.getMnemonic(index_reg) << ", s0, " << context.getMnemonic(index_reg) << std::endl;
-    os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << var.offset << std::endl;
 
-    switch(var.type) {
+    if (var.is_pointer) {
+        array_type = Specifier::_int;
+        int pointer_reg = context.allocateReg();
+        context.useReg(pointer_reg);
+        os << "lw " << context.getMnemonic(pointer_reg) << ", " << var.offset << "(s0)" << std::endl;
+        os << "add " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(pointer_reg) << ", " << context.getMnemonic(index_reg) << std::endl;
+        context.freeReg(pointer_reg);
+    } else {
+        os << "sub " << context.getMnemonic(index_reg) << ", s0, " << context.getMnemonic(index_reg) << std::endl;
+        os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << var.offset << std::endl;
+    }
+
+    switch(array_type) {
         case Specifier::_int:
             os << "lw " << context.getMnemonic(destReg) << ", 0(" << context.getMnemonic(index_reg) << ") " << std::endl;
             break;

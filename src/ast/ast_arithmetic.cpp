@@ -3,18 +3,13 @@
 
 void Addition::compile(std::ostream& os, Context& context, int destReg) const {
 
-    int left_reg = prepLeft(os, context, destReg);
-    int right_reg = prepRight(os, context, destReg);
-
     Specifier left_type = left->getType(context);
     Specifier right_type = right->getType(context);
 
-    // currently only support same type operations
-    if (right_type != left_type) {
-        exit(1);
-    }
+    int left_reg = prepLeft(os, context, destReg);
+    int right_reg = prepRight(os, context, destReg);
 
-    switch (left_type) {
+    switch (right_type) {
         case Specifier::_int:
             os << "add " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;

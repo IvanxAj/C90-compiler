@@ -16,6 +16,10 @@ const std::string& UnaryOp::getIdentifier() const {
     return expr->getIdentifier();
 }
 
+ Specifier UnaryOp::getType(Context& context) const {
+    return expr->getType(context);
+ }
+
 void UnaryOp::compile(std::ostream& os, Context& context, int destReg) const {
 
     switch(op)
@@ -40,11 +44,28 @@ void UnaryOp::compile(std::ostream& os, Context& context, int destReg) const {
         {
             // puts value that is being pointed to into destReg
             std::string var_name = expr->getIdentifier();
-            int offset = context.getVarOffset(var_name);
+            Variable var = context.getVar(var_name);
 
-            os << "lw " << context.getMnemonic(destReg) << ", " << offset << "(s0)" << std::endl;
-            os << "lw " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(destReg) << ")" << std::endl;
+            int address_reg = context.allocateReg();
+            context.useReg(address_reg);
+            os << "lw " << context.getMnemonic(address_reg) << ", " << var.offset << "(s0)" << std::endl;
 
+            switch (var.type) {
+                case Specifier::_int:
+                    os << "lw " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
+                    break;
+                case Specifier::_float:
+                    os << "flw " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
+                    break;
+                case Specifier::_double:
+                    os << "fld " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
+                    break;
+                default:
+                    std::cerr << "Deref: Invalid pointer type" << std::endl;
+                    exit(1);
+            }
+
+            context.freeReg(address_reg);
             break;
         }
         case UnaryOperator::AddressOf:

@@ -20,6 +20,7 @@ public:
 
     bool isDerefPointer() const override;
     const std::string& getIdentifier() const override;
+    Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 
 private:

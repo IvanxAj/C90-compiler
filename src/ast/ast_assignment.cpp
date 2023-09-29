@@ -52,7 +52,7 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
     } else if (var.is_pointer) {
         // l value variable is pointer eg int *p; p = &a;
         // cant use normal variable one as pointer variables store type of what they are pointing to
-        os << "lw " << context.getMnemonic(right_reg) << ", " << var.offset << "(s0)" << std::endl;
+        os << "sw " << context.getMnemonic(right_reg) << ", " << var.offset << "(s0)" << std::endl;
 
     } else if (!expr1->isArray()) {
         // l-value is a variable
