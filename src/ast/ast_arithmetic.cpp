@@ -9,6 +9,10 @@ void Addition::compile(std::ostream& os, Context& context, int destReg) const {
     int left_reg = prepLeft(os, context, destReg);
     int right_reg = prepRight(os, context, destReg);
 
+    // if left contains a pointer, left_type will be type of the object the pointer is pointing to
+    // e.g. for example if left_type is a float pointer -> it will return float
+    // however pointers require int operation
+    // this is why we switch on right_type which will always be the correct type for pointer arithmetic
     switch (right_type) {
         case Specifier::_int:
             os << "add " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
@@ -38,12 +42,7 @@ void Subtraction::compile(std::ostream& os, Context& context, int destReg) const
     Specifier left_type = left->getType(context);
     Specifier right_type = right->getType(context);
 
-    // currently only support same type operations
-    if (right_type != left_type) {
-        exit(1);
-    }
-
-    switch (left_type) {
+    switch (right_type) {
         case Specifier::_int:
             os << "sub " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;
@@ -71,17 +70,7 @@ void Multiplication::compile(std::ostream& os, Context& context, int destReg) co
     Specifier left_type = left->getType(context);
     Specifier right_type = right->getType(context);
 
-    std::cerr << "Left type: " << context.specifierToString(left_type)
-                << " Right type: " << context.specifierToString(right_type)
-                << "Dest reg: " << destReg << std::endl;
-
-    // currently only support same type operations
-    if (right_type != left_type) {
-        std::cerr << "Right type does not equal left type" << std::endl;
-        exit(1);
-    }
-
-    switch (left_type) {
+    switch (right_type) {
         case Specifier::_int:
             os << "mul " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;
@@ -110,12 +99,7 @@ void Division::compile(std::ostream& os, Context& context, int destReg) const {
     Specifier left_type = left->getType(context);
     Specifier right_type = right->getType(context);
 
-    // currently only support same type operations
-    if (right_type != left_type) {
-        exit(1);
-    }
-
-    switch (left_type) {
+    switch (right_type) {
         case Specifier::_int:
             os << "div " << context.getMnemonic(destReg) << ", " << context.getMnemonic(left_reg) << ", " << context.getMnemonic(right_reg) << std::endl;
             break;

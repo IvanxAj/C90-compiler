@@ -47,9 +47,9 @@ void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const 
     // Get variable info
     std::string array_name = getIdentifier();
     Variable var = context.getVar(array_name);
-    Specifier array_type = var.type;
+    Specifier identifier_type = var.type;
 
-    int var_size = typeSizes.at(array_type);
+    int var_size = typeSizes.at(identifier_type);
 
     // TODO: handle arrays declared at global scope
     // Allocate and use register for index
@@ -59,7 +59,7 @@ void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const 
     os << "slli " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << log2(var_size) << std::endl;
 
     if (var.is_pointer) {
-        array_type = Specifier::_int;
+        identifier_type = Specifier::_int;
         int pointer_reg = context.allocateReg();
         context.useReg(pointer_reg);
         os << "lw " << context.getMnemonic(pointer_reg) << ", " << var.offset << "(s0)" << std::endl;
@@ -70,7 +70,7 @@ void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const 
         os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << var.offset << std::endl;
     }
 
-    switch(array_type) {
+    switch(identifier_type) {
         case Specifier::_int:
             os << "lw " << context.getMnemonic(destReg) << ", 0(" << context.getMnemonic(index_reg) << ") " << std::endl;
             break;

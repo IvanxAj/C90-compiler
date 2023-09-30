@@ -45,7 +45,8 @@ int BinaryOperation::prepRight(std::ostream& os, Context& context, int destReg) 
     Specifier type = right->getType(context);
     int var_size = typeSizes.at(type);
     // if left was a pointer var, then right operand should be an integer - for pointer arithemetic
-    bool is_pointer_var = context.getIsPointer(left->getIdentifier()) && !left->isDerefPointer();
+    // int *p = &a, p = p + 2 (p + size(pointed by p) * 2)
+    bool is_pointer_var = !left->isDerefPointer() && context.getIsPointer(left->getIdentifier());
 
     int rightReg = allocateRegBasedOnType(context, type, false);
     right->compile(os, context, rightReg);
