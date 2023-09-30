@@ -12,52 +12,51 @@ Specifier BinaryOperation::getType(Context& context) const {
     return right->getType(context);
 }
 
+int BinaryOperation::allocateRegBasedOnType(Context& context, Specifier type, bool isFunctionCall) const {
+    int reg = -1;
+    if (type == Specifier::_int) {
+        reg = context.allocateReg();
+    } else if (type == Specifier::_double || type == Specifier::_float) {
+        reg = context.allocateFloatReg();
+    } else {
+        std::cerr << "BinaryOperation: Invalid type" << std::endl;
+        exit(1);
+    }
+
+    if (isFunctionCall) {
+        reg = (type == Specifier::_int) ? 9 : 41; // s1 or fs1 callee saved reg
+    }
+
+    context.useReg(reg);
+    return reg;
+}
+
 int BinaryOperation::prepLeft(std::ostream& os, Context& context, int destReg) const {
     Specifier type = left->getType(context);
 
-    int left_reg = -1;
+    // only need to check if left is a function call - as left recursive ((1+2)+3)..
+    int leftReg = allocateRegBasedOnType(context, type, right->isFuncCall());
 
-    if (type == Specifier::_int) {
-        left_reg = context.allocateReg();
-        if(right->isFuncCall()) {
-            left_reg = 9; // s1 callee saved reg
-        }
-        std::cerr << "Left: Int type" << std::endl;
-    } else if (type == Specifier::_double || type == Specifier::_float) {
-        left_reg = context.allocateFloatReg();
-        if(right->isFuncCall()) {
-            left_reg = 41; // fs1 callee saved reg
-        }
-        std::cerr << "Left: double/float type" << std::endl;
-    } else {
-        std::cerr << "Error: Invalid type" << std::endl;
-    }
-    // check if right is a function call - then allocate a callee saved reg eg s1
-    context.useReg(left_reg);
+    left->compile(os, context, leftReg);
+    return leftReg;
+}
 
-    left->compile(os, context, left_reg);
-    return left_reg;
-
-};
 int BinaryOperation::prepRight(std::ostream& os, Context& context, int destReg) const {
-
     Specifier type = right->getType(context);
-    int right_reg = -1;
+    int var_size = typeSizes.at(type);
+    // if left was a pointer var, then right operand should be an integer - for pointer arithemetic
+    // int *p = &a, p = p + 2 (p + size(pointed by p) * 2)
+    bool is_pointer_var = !left->isDerefPointer() && context.getIsPointer(left->getIdentifier());
 
-    if (type == Specifier::_int) {
-        std::cerr << "Right: Int type" << std::endl;
-        right_reg = context.allocateReg();
-    } else if (type == Specifier::_double || type == Specifier::_float) {
-        std::cerr << "Right: double/float type type" << std::endl;
-        right_reg = context.allocateFloatReg();
+    int rightReg = allocateRegBasedOnType(context, type, false);
+    right->compile(os, context, rightReg);
+
+    if (is_pointer_var) {
+        os << "slli " << context.getMnemonic(rightReg) << ", " << context.getMnemonic(rightReg) << ", " << log2(var_size) << std::endl;
     }
 
-    context.useReg(right_reg);
-    right->compile(os, context, right_reg);
-
-    return right_reg;
-
-};
+    return rightReg;
+}
 
 void BinaryOperation::compile(std::ostream& os, Context& context, int destReg) const {
     std::cerr << "Error: compile() should not be called on a BinaryOperation object" << std::endl;

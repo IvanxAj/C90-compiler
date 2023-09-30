@@ -41,6 +41,7 @@ const std::string& BaseExpression::getIdentifier() const {
 Specifier BaseExpression::getType(Context& context) const {
     // currently defaulting the type of a BaseExpression to int
     // as we can't yet guarantee getType returns correct derived type for all BaseExpressions
+    std::cerr << "getType reached default int" << std::endl;
     return Specifier::_int;
 }
 

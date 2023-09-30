@@ -10,6 +10,7 @@ public:
     BinaryOperation(BaseExpression* _left, BaseExpression* _right, bool _owns_operands = true);
     ~BinaryOperation();
 
+    int allocateRegBasedOnType(Context& context, Specifier type, bool isFunctionCall) const;
     int prepLeft(std::ostream& os, Context& context, int destReg) const;
     int prepRight(std::ostream& os, Context& context, int destReg) const;
 

@@ -51,6 +51,7 @@ Identifier::Identifier(const std::string& _name): name(_name) {}
 
 Specifier Identifier::getType(Context& context) const {
     Specifier type = context.getVarType(name);
+
     if (type == Specifier::INVALID_TYPE) {
         std::cerr << "Invalid type" << std::endl;
     }

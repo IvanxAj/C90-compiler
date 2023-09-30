@@ -171,26 +171,22 @@ struct Context
             Variable var = it->getLocalVar(name);
             if (var.offset != -1) return var;
         }
-        return Variable(Specifier::INVALID_TYPE, -1);
+        return Variable(Specifier::INVALID_TYPE, -1, false);
     }
 
     int getVarOffset(const std::string& name) {
-        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
-            int offset = it->getLocalVar(name).offset;
-            if (offset != -1) {
-                return offset;
-            }
-        }
-        return -1;
+        Variable var = getVar(name);
+        return var.offset;
     }
 
     Specifier getVarType(const std::string& name) {
-        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
-            Specifier type = it->getLocalVar(name).type;
-            if (type != Specifier::INVALID_TYPE) return type;
-        }
-        // will return INVALID _TYPE if variable doesnt exist anyway
-        return Specifier::INVALID_TYPE;
+        Variable var = getVar(name);
+        return var.type;
+    }
+
+    bool getIsPointer(const std::string& name) {
+        Variable var = getVar(name);
+        return var.is_pointer;
     }
 
     int addVar(const std::string& name, Specifier type, bool is_pointer = false) {

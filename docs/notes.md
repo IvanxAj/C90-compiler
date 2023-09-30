@@ -122,7 +122,7 @@
   - InitDeclarator stores the memory address of array object in a certain register, which is then passed as the argument to compile on the initialiser list object, which can then offset from this reg (which has address of array element 0)
 - Proceeded with option 2, which seemed to be cleaner (have not considered global scope at this point)
 
-Pointers
+  **Pointers**
 - Dereferenced pointer (when used as an r-value), just loads the variable pointed to by the pointer - handle type later
 - Dereferenced pointer (when used as an l-value), has to be handled in assignment. Now need to differentiate between pointers and other objects too.
 - Initially considered adding pointer as a Specifier type, but that might require different int_ptr and float_ptr, and would also break existing switch statements
@@ -139,3 +139,17 @@ Pointers
 - Pointer declaration implementation required knowledge of whether a declarator was a pointer or not, so added isPointer to BaseDeclaration.
   - Declaration objects checks this, and adds to bindings with isPointer set to true to indicate that a certain variable is a pointer.
   - InitDeclarator also checks to allocate the correct reg + store instruction (normal int regs)
+
+**28/09/23** Pointer arithmetic
+  ```C
+  int f(int *a) {
+    return a + 1;
+  }
+  ```
+- Handled in arithmetic operations where, if one of the objects is a pointer, then will multiply the other operand, which should result in an integer, by the size of the object its pointing to.
+- Similar approach used for dereferenced pointer notation `a[1]`, where a is a pointer, so index represents the offset
+
+**Approach to types**
+- Currently have a lot of very similar switch statements scattered throughout codegen to use the correct load / store instruction, based on required type. These can be made into utility functions, where the required arguments are passed in, and appropriate instruction is output.
+- The types implementation is also slightly awkward - where the Specifier is used to directly control the load/store instruction output, however this is only relevant for int, float, double and char types. But there are many more specifiers / types that can be defined for use, eg pointers, unsigned etc, which would use the same load / store instructions, but current enum implementation makes it messy - fix would be to have a layer of abstraction between the two.
+- Would also be helpful when assigning registers - move the implementation details for different types into context, and pass in the type, to be allocated a register.
