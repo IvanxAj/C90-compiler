@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast_wrappers.hpp"
+#include "ast_base.hpp"
 
 class ArrayDeclarator
     : public BaseDeclaration

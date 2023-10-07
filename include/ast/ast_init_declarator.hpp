@@ -1,17 +1,17 @@
 #pragma once
 
 #include "ast_node.hpp"
-#include "ast_wrappers.hpp"
+#include "ast_base.hpp"
 
-class Init_Declarator
+class InitDeclarator
     : public BaseDeclaration
 {
 public:
     // two constructors - with + without initialisation
-    Init_Declarator(BaseDeclaration* _declarator, BaseExpression* _initialiser);
-    Init_Declarator(BaseDeclaration* _declarator);
+    InitDeclarator(BaseDeclaration* _declarator, BaseExpression* _initialiser);
+    InitDeclarator(BaseDeclaration* _declarator);
 
-    ~Init_Declarator();
+    ~InitDeclarator();
 
     bool isPointer() const override;
     int getArraySize() const override;

@@ -39,7 +39,7 @@ void For::compile(std::ostream& os, Context& context, int destReg) const {
     os << start_label << ": " << std::endl;
 
     // evaluate condition
-    int cond_reg = context.allocateReg();
+    int cond_reg = context.allocateReg(Specifier::_int);
     context.useReg(cond_reg);
     condition->compile(os, context, cond_reg);
     os << "beq " << context.getMnemonic(cond_reg) << ", zero, " << end_label << std::endl;

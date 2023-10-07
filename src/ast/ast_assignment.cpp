@@ -12,28 +12,10 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
     std::string var_name = expr1->getIdentifier();
     Variable var = context.getVar(var_name);
     // context.printVariableInfo(var_name, var);
-    int var_size = typeSizes.at(var.type);
+    Specifier var_type = var.type;
+    int var_size = typeSizes.at(var_type);
 
-    int right_reg = -1;
-    std::string store_instruction;
-
-    switch(var.type) {
-        case Specifier::_int:
-            right_reg = context.allocateReg();
-            store_instruction = "sw ";
-            break;
-        case Specifier::_float:
-            right_reg = context.allocateFloatReg();
-            store_instruction = "fsw ";
-            break;
-        case Specifier::_double:
-            right_reg = context.allocateFloatReg();
-            store_instruction = "fsd ";
-            break;
-        default:
-            std::cerr << "Assignment: Invalid type" << std::endl;
-            exit(1);
-    }
+    int right_reg = context.allocateReg(var_type);
 
     context.useReg(right_reg);
     expr2->compile(os, context, right_reg);
@@ -41,29 +23,29 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
     // at this point r-value is in right_reg
     if(expr1->isDerefPointer()) {
         // l value is a dereferenced pointer eg int *p = &a; *p = 20;
-        int address_reg = context.allocateReg();
+        int address_reg = context.allocateReg(Specifier::_int);
         context.useReg(address_reg);
 
-        os << "lw " << context.getMnemonic(address_reg) << ", " << var.offset << "(s0)" << std::endl;
-        os << store_instruction << context.getMnemonic(right_reg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
+        context.loadInstruction(os, Specifier::_int, address_reg, var.offset);
+        context.storeInstruction(os, var_type, right_reg, 0, address_reg);
 
         context.freeReg(address_reg);
 
     } else if (var.is_pointer) {
         // l value variable is pointer eg int *p; p = &a;
         // cant use normal variable one as pointer variables store type of what they are pointing to
-        os << "sw " << context.getMnemonic(right_reg) << ", " << var.offset << "(s0)" << std::endl;
+        context.storeInstruction(os, Specifier::_int, right_reg, var.offset);
 
     } else if (!expr1->isArray()) {
         // l-value is a variable
-        os << store_instruction << context.getMnemonic(right_reg) << ", " << var.offset << "(s0)" << std::endl;
+        context.storeInstruction(os, var_type, right_reg, var.offset);
 
     } else {
         // l-value is an array element/index a[i] = 5;
         // have a check to see if array in global or local scope
         // local assignment
 
-        int index_reg = context.allocateReg();
+        int index_reg = context.allocateReg(Specifier::_int);
         context.useReg(index_reg);
         auto index_expression = dynamic_cast<const ArrayIndex*>(expr1);
         index_expression->getIndex()->compile(os, context, index_reg);
@@ -72,7 +54,7 @@ void Assignment::compile(std::ostream& os, Context& context, int destReg) const 
         os << "sub " << context.getMnemonic(index_reg) << ", s0, " << context.getMnemonic(index_reg) << std::endl;
         os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << var.offset << std::endl;
 
-        os << store_instruction << context.getMnemonic(right_reg) << ", " << "0(" << context.getMnemonic(index_reg) << ")" << std::endl;
+        context.storeInstruction(os, var_type, right_reg, 0, index_reg);
 
         context.freeReg(index_reg);
     }

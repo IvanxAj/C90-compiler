@@ -1,5 +1,5 @@
 #include "ast_node.hpp"
-#include "ast_wrappers.hpp"
+#include "ast_base.hpp"
 
 enum class JumpType {
     Return,

@@ -46,24 +46,11 @@ void UnaryOp::compile(std::ostream& os, Context& context, int destReg) const {
             std::string var_name = expr->getIdentifier();
             Variable var = context.getVar(var_name);
 
-            int address_reg = context.allocateReg();
+            int address_reg = context.allocateReg(Specifier::_int);
             context.useReg(address_reg);
             os << "lw " << context.getMnemonic(address_reg) << ", " << var.offset << "(s0)" << std::endl;
 
-            switch (var.type) {
-                case Specifier::_int:
-                    os << "lw " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
-                    break;
-                case Specifier::_float:
-                    os << "flw " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
-                    break;
-                case Specifier::_double:
-                    os << "fld " << context.getMnemonic(destReg) << ", " << "0(" << context.getMnemonic(address_reg) << ")" << std::endl;
-                    break;
-                default:
-                    std::cerr << "Deref: Invalid pointer type" << std::endl;
-                    exit(1);
-            }
+            context.loadInstruction(os, var.type, destReg, 0, address_reg);
 
             context.freeReg(address_reg);
             break;
@@ -91,7 +78,7 @@ Increment::~Increment() {
 void Increment::compile(std::ostream& os, Context& context, int destReg) const {
 
     std::string var_name = expr->getIdentifier();
-    int reg = context.allocateReg();
+    int reg = context.allocateReg(Specifier::_int);
 
     int var_offset = context.getVarOffset(var_name);
     context.useReg(reg);
@@ -115,7 +102,7 @@ Decrement::~Decrement() {
 void Decrement::compile(std::ostream& os, Context& context, int destReg) const {
 
     std::string var_name = expr->getIdentifier();
-    int reg = context.allocateReg();
+    int reg = context.allocateReg(Specifier::_int);
 
     int var_offset = context.getVarOffset(var_name);
     context.useReg(reg);

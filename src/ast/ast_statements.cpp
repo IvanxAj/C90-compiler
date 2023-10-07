@@ -52,8 +52,8 @@ void CompoundStatement::compile(std::ostream& os, Context& context, int destReg)
         return;
     }
 
-    if (context.isFunctionDef) {
-        context.isFunctionDef = 0;
+    if (context.is_function_def) {
+        context.is_function_def = 0;
     } else {
         context.newScope();
     }

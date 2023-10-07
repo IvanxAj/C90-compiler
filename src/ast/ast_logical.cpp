@@ -133,7 +133,7 @@ void LogicalAnd::compile(std::ostream& os, Context& context, int destReg) const 
     std::string false_label = context.makeLabel(".AND_FALSE");
     std::string end_label = context.makeLabel(".AND_END");
 
-    int left_reg = context.allocateReg();
+    int left_reg = context.allocateReg(Specifier::_int);
     if(right->isFuncCall()) {
         left_reg = 9;
     }
@@ -164,7 +164,7 @@ void LogicalOr::compile(std::ostream& os, Context& context, int destReg) const {
     std::string true_label = context.makeLabel(".OR_TRUE");
     std::string end_label = context.makeLabel(".OR_END");
 
-    int left_reg = context.allocateReg();
+    int left_reg = context.allocateReg(Specifier::_int);
     if(right->isFuncCall()) {
         left_reg = 9;
     }

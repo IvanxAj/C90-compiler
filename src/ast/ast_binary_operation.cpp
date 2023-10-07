@@ -13,15 +13,8 @@ Specifier BinaryOperation::getType(Context& context) const {
 }
 
 int BinaryOperation::allocateRegBasedOnType(Context& context, Specifier type, bool isFunctionCall) const {
-    int reg = -1;
-    if (type == Specifier::_int) {
-        reg = context.allocateReg();
-    } else if (type == Specifier::_double || type == Specifier::_float) {
-        reg = context.allocateFloatReg();
-    } else {
-        std::cerr << "BinaryOperation: Invalid type" << std::endl;
-        exit(1);
-    }
+
+    int reg = context.allocateReg(type);
 
     if (isFunctionCall) {
         reg = (type == Specifier::_int) ? 9 : 41; // s1 or fs1 callee saved reg

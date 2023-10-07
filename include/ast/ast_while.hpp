@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ast_node.hpp"
-#include "ast_wrappers.hpp"
+#include "ast_base.hpp"
 
 class While
     : public BaseStatement

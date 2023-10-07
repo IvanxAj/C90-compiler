@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ast_node.hpp"
-#include "ast_wrappers.hpp"
+#include "ast_base.hpp"
 #include "ast_binary_operation.hpp"
 
 // using BinaryOperation::BinaryOperation; lets us recycle constructors + destructors from BinaryOperation

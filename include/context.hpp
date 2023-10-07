@@ -6,6 +6,9 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <ostream>
+
+constexpr int STACK_ALIGNMENT = 16;
 
 /*
 REGISTERS RISC-V
@@ -54,14 +57,14 @@ struct Variable
 
     Variable(): type(Specifier::_int), offset(0), is_pointer(false) {}
 
-    Variable(Specifier _type, int _offset, bool _isPointer = false)
-        : type(_type), offset(_offset), is_pointer(_isPointer) {}
+    Variable(Specifier _type, int _offset, bool _is_pointer = false)
+        : type(_type), offset(_offset), is_pointer(_is_pointer) {}
 
 };
 
 struct LoopLabel {
-    std::string startLabel;
-    std::string endLabel;
+    std::string start_label;
+    std::string end_label;
 };
 
 struct Scope
@@ -100,19 +103,18 @@ struct Context
     };
 
     // stack
-    int local_var_offset = -16;     // track current local var offset
-    int param_offset = -32;         // track current param offset
-    int param_offset_excess = 0;    // track params on previous stack frame
+    int local_var_offset = -STACK_ALIGNMENT;     // track current local var offset
+    int param_offset = -2 * STACK_ALIGNMENT;     // track current param offset
+    // int param_offset_excess = 0;              // track params on previous stack frame
 
     // local context
-    bool isFunctionDef = 0;
+    bool is_function_def = 0;
     std::string ret_label;
     Specifier current_func_type;
 
     std::vector<Scope> scopes;
     std::vector<LoopLabel> loopLabels;
     std::unordered_map<std::string, Specifier> functionReturnTypes;
-    // std::vector<std::pair<std::string, Specifier>> functionReturnTypes;
 
     // Add a global scope on constructor
     Context() {
@@ -124,8 +126,16 @@ struct Context
     void useReg(int i) { usedRegs[i] = 1; }
     void freeReg(int i) { usedRegs[i] = 0; }
 
-    int allocateReg() {
-        for (int i = 5; i < 32; i++) {
+    int allocateReg(Specifier type) {
+        // initialise to int start and end registers
+        int start = 5;
+        int end = 32;
+        // change to float registers based on type
+        if (type == Specifier::_float || type == Specifier::_double) {
+            start = 37;
+            end = 64;
+        }
+        for (int i = start; i < end; i++) {
             if (!usedRegs[i]) {
                 useReg(i);
                 return i;
@@ -134,17 +144,7 @@ struct Context
         return -1;
     }
 
-    int allocateFloatReg() {
-        for (int i = 37; i < 64; i++) {
-            if (!usedRegs[i]) {
-                useReg(i);
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    std::string getMnemonic(int i) {
+    std::string getMnemonic(int i) const {
         static const std::array<std::string, 64> regNames = {
             "zero", "ra", "sp", "gp", "tp",
             "t0", "t1", "t2",
@@ -166,7 +166,7 @@ struct Context
 
     /* ----------------------------------HANDLE VARS------------------------------------------- */
 
-    Variable getVar(const std::string& name) {
+    Variable getVar(const std::string& name) const {
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
             Variable var = it->getLocalVar(name);
             if (var.offset != -1) return var;
@@ -174,17 +174,17 @@ struct Context
         return Variable(Specifier::INVALID_TYPE, -1, false);
     }
 
-    int getVarOffset(const std::string& name) {
+    int getVarOffset(const std::string& name) const {
         Variable var = getVar(name);
         return var.offset;
     }
 
-    Specifier getVarType(const std::string& name) {
+    Specifier getVarType(const std::string& name) const {
         Variable var = getVar(name);
         return var.type;
     }
 
-    bool getIsPointer(const std::string& name) {
+    bool getIsPointer(const std::string& name) const {
         Variable var = getVar(name);
         return var.is_pointer;
     }
@@ -208,8 +208,8 @@ struct Context
             return param_offset;
         }
 
-        scopes.back().addLocalVar(name, type, param_offset_excess, is_pointer);
-        param_offset_excess += param_size;
+        // scopes.back().addLocalVar(name, type, param_offset_excess, is_pointer);
+        // param_offset_excess += param_size;
         // 1 indicates that the param was not taken from register, and is already on the stack
         return 1;
     }
@@ -238,9 +238,9 @@ struct Context
     }
 
     void resetOffsets() {
-        local_var_offset = -16;
-        param_offset = -32;
-        param_offset_excess = 0;
+        local_var_offset = -STACK_ALIGNMENT;
+        param_offset = -2 * STACK_ALIGNMENT;
+        // param_offset_excess = 0;
     }
 
     void saveFuncReturnType(const std::string& func_name, Specifier return_type) {
@@ -262,13 +262,13 @@ struct Context
 
     void updateStartLabel(const std::string& new_start_label) {
         if (!loopLabels.empty()) {
-            loopLabels.back().startLabel = new_start_label;
+            loopLabels.back().start_label = new_start_label;
         }
     }
 
-    std::string getCurrentLoopStart() {
+    std::string getCurrentLoopStart() const {
         if (!loopLabels.empty()) {
-            return loopLabels.back().startLabel;
+            return loopLabels.back().start_label;
         }
         return "";
     }
@@ -277,39 +277,79 @@ struct Context
         To allow break to keep working, we have to ignore this, and return
         first valid label - so we iterate backwards
     */
-    std::string getCurrentLoopEnd() {
+    std::string getCurrentLoopEnd() const {
         for (auto it = loopLabels.rbegin(); it != loopLabels.rend(); ++it) {
-            if (!it->endLabel.empty()) {
-                return it->endLabel;
+            if (!it->end_label.empty()) {
+                return it->end_label;
             }
         }
         return "";
     }
 
-    /* ----------------------------------UTILITY------------------------------------------- */
-
     int calculateStackSize(int totalLocalVarBytes, int totalParamBytes) {
-        int stack_size = 16;  // Minimum stack size
-
-        // Calculate space needed for local variables
-        // can set the local_var_offset here
+        int stack_size = STACK_ALIGNMENT;  // Minimum stack size
 
         // allocate 4 bytes for floats - helps guarantee floats don't overwrite vars
-        totalParamBytes += 8;
+        totalParamBytes += 4;
 
+        // Calculate space needed for local variables
         if (totalLocalVarBytes > 0) {
-            stack_size += 16 * std::ceil(static_cast<double>(totalLocalVarBytes) / 16.0);
+            stack_size += STACK_ALIGNMENT * std::ceil(static_cast<double>(totalLocalVarBytes) / STACK_ALIGNMENT);
         }
 
-        // can set the param offset here
         param_offset = -stack_size;
 
         // Calculate space needed for parameters
         if (totalParamBytes > 0) {
-            stack_size += 16 * std::ceil(static_cast<double>(totalParamBytes) / 16.0);
+            stack_size += STACK_ALIGNMENT * std::ceil(static_cast<double>(totalParamBytes) / STACK_ALIGNMENT);
         }
 
         return stack_size;
+    }
+
+    /* ----------------------------------UTILITY------------------------------------------- */
+
+    // lw destReg, offset(baseReg) for input type
+    void loadInstruction(std::ostream& os, Specifier type, int dest_reg, int offset, int address_reg = 8 ) const {
+        // address_reg defaults to s0
+        switch(type) {
+            case Specifier::_int:
+                os << "lw " << getMnemonic(dest_reg) << ", " << offset << "(" << getMnemonic(address_reg) << ") " << std::endl;
+                break;
+            case Specifier::_float:
+                os << "flw " << getMnemonic(dest_reg) << ", " << offset << "(" << getMnemonic(address_reg) << ") " << std::endl;
+                break;
+            case Specifier::_double:
+                os << "fld " << getMnemonic(dest_reg) << ", " << offset << "(" << getMnemonic(address_reg) << ") " << std::endl;
+                break;
+            default:
+                std::cerr << "Load Instruction with unknown type" << std::endl;
+                exit(1);
+            }
+    }
+
+    // sw destReg, offset(baseReg) for input type
+     void storeInstruction(std::ostream& os, Specifier type, int dest_reg, int offset, int address_reg = 8 ) const {
+        // address_reg defaults to s0
+        switch(type) {
+            case(Specifier::_int):
+                os << "sw " << getMnemonic(dest_reg) << ", " << offset << "(" << getMnemonic(address_reg) << ") " << std::endl;
+                break;
+            case(Specifier::_float):
+                os << "fsw " << getMnemonic(dest_reg) << ", " << offset << "(" << getMnemonic(address_reg) << ") " << std::endl;
+                break;
+            case(Specifier::_double):
+                os << "fsd " << getMnemonic(dest_reg) << ", " << offset << "(" << getMnemonic(address_reg) << ") " << std::endl;
+                break;
+            default:
+                std::cerr << "Store Instruction with unknown type" << std::endl;
+                exit(1);
+            }
+    }
+
+    inline std::string makeLabel (std::string label){
+        static int unique = 0 ;
+        return label + std::to_string(unique++);
     }
 
     std::string specifierToString(Specifier specifier) const {
@@ -348,9 +388,5 @@ struct Context
         std::cerr << "-----------------------------" << std::endl;
     }
 
-    inline std::string makeLabel (std::string label){
-        static int unique = 0 ;
-        return label + std::to_string(unique++);
-    }
 };
 

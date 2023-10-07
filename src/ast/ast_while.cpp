@@ -23,7 +23,7 @@ void While::compile(std::ostream& os, Context& context, int destReg) const {
     os << start_label << ":" << std::endl;
 
     // evaluate condition
-    int cond_reg = context.allocateReg();
+    int cond_reg = context.allocateReg(Specifier::_int);
     context.useReg(cond_reg);
     condition->compile(os, context, cond_reg);
     os << "beq " << context.getMnemonic(cond_reg) << ", " << context.getMnemonic(0) << ", " << end_label << std::endl;

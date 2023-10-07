@@ -24,8 +24,6 @@
     BaseStatement *base_statement;
 
     Specifier type;
-
-    // BaseList *base_list;
     List_Ptr node_list;
 }
 
@@ -113,7 +111,7 @@ type_specifier
 
 init_declarator
 	: declarator                       { $$ = $1; }
-	| declarator '=' initializer       { $$ = new Init_Declarator($1, $3); }
+	| declarator '=' initializer       { $$ = new InitDeclarator($1, $3); }
 	;
 
  /* name of stuff (variable / function etc) */

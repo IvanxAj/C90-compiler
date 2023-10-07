@@ -14,25 +14,22 @@ void FunctionDefinition::compile(std::ostream& os, Context& context, int destReg
     std::string func_name = func_declarator->getIdentifier();
 
     context.saveFuncReturnType(func_name, type);
+
     if (type == Specifier::_float || type == Specifier::_double) {
         destReg = 42;
     }
 
-
-    // print various flags
-    os << ".text" << std::endl;
     os << ".globl " << func_name << std::endl;
     os << func_name << ":" << std::endl;
 
     context.ret_label = context.makeLabel(".FUNC_RETURN");
     context.resetOffsets();
-    // call getSize on its children nodes - want to return size required by: local_vars, parameters
-    // call calcStackSizez(local_var_size, param_size) - hardcode to 32 bytes for now
 
+    // Find the total stack size required for the function
     int param_list_size = func_declarator->getSize();
-    std::cerr << "Param list size: " << param_list_size << std::endl;
-
     int statement_size = statements->getSize();
+
+    std::cerr << "Param list size: " << param_list_size << std::endl;
     std::cerr << "Statement list size: " << statement_size << std::endl;
 
     int stack_size = context.calculateStackSize(statement_size, param_list_size);
@@ -119,7 +116,7 @@ void FuncDeclarator::compile(std::ostream& os, Context& context, int destReg) co
     // also need to handle where we have more then 8 args - no of a regs
 
     context.newScope();
-    context.isFunctionDef = 1;
+    context.is_function_def = 1;
 
     if (param_list != nullptr) {
 
@@ -180,22 +177,15 @@ void ParamDeclaration::compile(std::ostream& os, Context& context, int destReg) 
 
     // Pointers use standard int regs + operations
     // even if param is float *a - use the lw instruction and default regs
-    Specifier effective_type = is_pointer ? Specifier::_int : type;
-
-    switch(effective_type) {
-        case(Specifier::_int):
-            os << "sw " << context.getMnemonic(10 + param_index) << ", " << param_offset << "(s0)" << std::endl;
-            break;
-        case(Specifier::_float):
-            os << "fsw " << context.getMnemonic(42 + param_index) << ", " << param_offset << "(s0)" << std::endl;
-            break;
-        case(Specifier::_double):
-            os << "fsd " << context.getMnemonic(42 + param_index) << ", " << param_offset << "(s0)" << std::endl;
-            break;
-        default:
-            std::cerr << "ParamDeclaration: Invalid param type" << std::endl;
-            exit(1);
+    if (is_pointer || type == Specifier::_int) {
+        context.storeInstruction(os, Specifier::_int, 10 + param_index, param_offset);
+    } else if ( type == Specifier::_float || type == Specifier::_double) {
+        context.storeInstruction(os, type, 42 + param_index, param_offset);
+    } else {
+        std::cerr << "ParamDeclaration: Invalid param type" << std::endl;
+        exit(1);
     }
+
 }
 
 

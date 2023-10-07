@@ -35,7 +35,7 @@ void IfElse::compile(std::ostream& os, Context& context, int destReg) const {
         std::string label1 = context.makeLabel(".L");
 
         // evaluate condition
-        int cond_reg = context.allocateReg();
+        int cond_reg = context.allocateReg(Specifier::_int);
         context.useReg(destReg);
         condition->compile(os, context, cond_reg);
         os << "beq "  <<  context.getMnemonic(cond_reg) << "," << context.getMnemonic(0) << "," << label1 << std::endl;
@@ -80,7 +80,7 @@ void Switch::compile(std::ostream& os, Context& context, int destReg) const {
     context.addLabels(start_label, end_label);
 
     // evaluate expression into a reg
-    int reg = context.allocateReg();
+    int reg = context.allocateReg(Specifier::_int);
     context.useReg(reg);
     expression->compile(os, context, reg);
 
@@ -118,7 +118,7 @@ int Case::getSize() const {
 
 void Case::compile(std::ostream& os, Context& context, int destReg) const {
 
-    int reg = context.allocateReg();
+    int reg = context.allocateReg(Specifier::_int);
     context.useReg(reg);
 
     // start of case
@@ -135,7 +135,6 @@ void Case::compile(std::ostream& os, Context& context, int destReg) const {
         os << "bne " << context.getMnemonic(destReg) << ", " << context.getMnemonic(reg) << ", " << next_case_label << std::endl;
     }
 
-    // should be fine to re-use reg
     statements->compile(os, context, reg);
 
     context.freeReg(reg);

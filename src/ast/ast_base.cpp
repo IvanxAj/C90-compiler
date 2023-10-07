@@ -1,4 +1,4 @@
-#include "ast/ast_wrappers.hpp"
+#include "ast/ast_base.hpp"
 
 ProgramRoot::ProgramRoot(List_Ptr _list ) : list(_list) {};
 
@@ -11,6 +11,7 @@ ProgramRoot::~ProgramRoot() {
 }
 
 void ProgramRoot::compile(std::ostream& os, Context& context, int destReg) const {
+    os << ".text" << std::endl;
     for (auto node: *list) {
         node->compile(os, context, destReg);
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast_wrappers.hpp"
+#include "ast_base.hpp"
 #include "ast_array.hpp"
 
 class Assignment

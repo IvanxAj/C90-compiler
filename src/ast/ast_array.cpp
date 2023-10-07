@@ -53,16 +53,17 @@ void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const 
 
     // TODO: handle arrays declared at global scope
     // Allocate and use register for index
-    int index_reg = context.allocateReg();
+    int index_reg = context.allocateReg(Specifier::_int);
     context.useReg(index_reg);
     index->compile(os, context, index_reg);
     os << "slli " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << log2(var_size) << std::endl;
 
     if (var.is_pointer) {
         identifier_type = Specifier::_int;
-        int pointer_reg = context.allocateReg();
+        int pointer_reg = context.allocateReg(Specifier::_int);
         context.useReg(pointer_reg);
-        os << "lw " << context.getMnemonic(pointer_reg) << ", " << var.offset << "(s0)" << std::endl;
+
+        context.loadInstruction(os, Specifier::_int, pointer_reg, var.offset);
         os << "add " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(pointer_reg) << ", " << context.getMnemonic(index_reg) << std::endl;
         context.freeReg(pointer_reg);
     } else {
@@ -70,20 +71,8 @@ void ArrayIndex::compile(std::ostream& os, Context& context, int destReg) const 
         os << "addi " << context.getMnemonic(index_reg) << ", " << context.getMnemonic(index_reg) << ", " << var.offset << std::endl;
     }
 
-    switch(identifier_type) {
-        case Specifier::_int:
-            os << "lw " << context.getMnemonic(destReg) << ", 0(" << context.getMnemonic(index_reg) << ") " << std::endl;
-            break;
-        case Specifier::_double:
-            os << "fld " << context.getMnemonic(destReg) << ", 0(" << context.getMnemonic(index_reg) << ") " << std::endl;
-            break;
-        case Specifier::_float:
-            os << "flw " << context.getMnemonic(destReg) << ", 0(" << context.getMnemonic(index_reg) << ") " << std::endl;
-            break;
-        default:
-            std::cerr << "Array index: Invalid type" << std::endl;
-            exit(1);
-    }
+
+    context.loadInstruction(os, identifier_type, destReg, 0, index_reg);
 
     context.freeReg(index_reg);
 
@@ -108,25 +97,7 @@ void ArrayInitialiser::compile(std::ostream& os, Context& context, int destReg) 
     Specifier array_type = first_init->getType(context);
     int var_size = typeSizes.at(array_type);
 
-    int init_reg = -1;
-    std::string store_instruction;
-    switch(array_type) {
-        case Specifier::_int:
-            init_reg = context.allocateReg();
-            store_instruction = "sw ";
-            break;
-        case Specifier::_float:
-            init_reg = context.allocateFloatReg();
-            store_instruction = "fsw ";
-            break;
-        case Specifier::_double:
-            init_reg = context.allocateFloatReg();
-            store_instruction = "fsd ";
-            break;
-        default:
-            std::cerr << "Initialiser: Invalid type" << std::endl;
-            exit(1);
-    }
+    int init_reg = context.allocateReg(array_type);
 
     int index = 0;
     for (auto init : *initialiser_list) {
@@ -137,7 +108,7 @@ void ArrayInitialiser::compile(std::ostream& os, Context& context, int destReg) 
         int element_offset = var_size * index;
 
         // store the initializer value into the array element
-        os << store_instruction << context.getMnemonic(init_reg) << ", " << -element_offset <<"(" << context.getMnemonic(destReg) << ")" << std::endl;
+        context.storeInstruction(os, array_type, init_reg, element_offset, destReg);
 
         context.freeReg(init_reg);
         index++;

@@ -32,8 +32,10 @@ void Number::compile(std::ostream& os, Context& context, int destReg) const {
         case Specifier::_float:
             float_cast.f = value;
 
-            reg = context.allocateReg();
+            reg = context.allocateReg(Specifier::_int);
             os << "li " << context.getMnemonic(reg) << ", " << float_cast.i << std::endl;
+            // os << "fcvt.s.w " <<  context.getMnemonic(destReg) << ", " << context.getMnemonic(reg) << std::endl;
+
             os << "sw " << context.getMnemonic(reg) << ", 0(sp)" << std::endl;      // store on stack temporarily
             os << "flw " <<  context.getMnemonic(destReg) << ", 0(sp)" << std::endl;
 
@@ -66,19 +68,6 @@ void Identifier::compile(std::ostream& os, Context& context, int destReg) const 
 
     Variable var = context.getVar(name);
 
-    switch(var.type) {
-        case Specifier::_int:
-            os << "lw " << context.getMnemonic(destReg) << ", " << var.offset << "(s0)" << std::endl;
-            break;
-        case Specifier::_double:
-            os << "fld " << context.getMnemonic(destReg) << ", " << var.offset << "(s0)" << std::endl;
-            break;
-        case Specifier::_float:
-            os << "flw " << context.getMnemonic(destReg) << ", " << var.offset << "(s0)" << std::endl;
-            break;
-        default:
-            std::cerr << "Identifier: Invalid variable type" << std::endl;
-            exit(1);
-    }
+    context.loadInstruction(os, var.type, destReg, var.offset);
 
 }
