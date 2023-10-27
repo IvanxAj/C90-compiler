@@ -2,6 +2,7 @@
 
 #include "ast_node.hpp"
 #include "ast_base.hpp"
+#include <bit>
 
 
 class Number

@@ -155,3 +155,13 @@
 - Would also be helpful when assigning registers - move the implementation details for different types into context, and pass in the type, to be allocated a register.
 
 - Considered having getMnemonic, load and store instructions in a Utils namespace instead of adding to Context. But as these utility functions would always be used together with Context, and these would both relate to register usage, decided against that.
+
+**27/10/23**
+- In `Primitives`, type punning, was used to get the underlying IEEE754 bit representation of a float value. This is a common C technique, but newer C++ standards offer safer and more robust alternatives for such operations.
+- The C++ standard (prior to C++20) does not allow type punning through unions, meaning that if you write a value to one member of a union and then read from another member, the behavior is undefined. For example:
+  ```cpp
+  float_cast.f = 3.14f;
+  uint32_t bits = float_cast.i; // Undefined behavior in C++ prior to C++20
+  ```
+  The reason this was problematic is that different types may have different alignment requirements, and the compiler is allowed to assume that you never break the strict aliasing rules. So, it might optimise the code in a way that results in incorrect behavior when those rules are violated.
+- In C++20, `std::bit_cast` was introduced, which is a more safe and defined way to reinterpret the bits of a value as a different type, and so the union-based type punning in `Number`, was replaced with `std::bit_cast`.

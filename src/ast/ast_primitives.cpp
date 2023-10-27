@@ -18,29 +18,26 @@ Specifier Number::getType(Context& context) const {
 
 void Number::compile(std::ostream& os, Context& context, int destReg) const {
 
-    union {
-        float f;
-        uint32_t i;
-    } float_cast;
-
     int reg = -1;
 
     switch(type) {
         case Specifier::_int:
             os << "li "<< context.getMnemonic(destReg) << "," << value << std::endl;
             break;
-        case Specifier::_float:
-            float_cast.f = value;
+        case Specifier::_float: {
+            // static_cast to float used for a more explicit and safer type conversion
+            uint32_t int_bits = std::bit_cast<uint32_t>(static_cast<float>(value));
 
             reg = context.allocateReg(Specifier::_int);
-            os << "li " << context.getMnemonic(reg) << ", " << float_cast.i << std::endl;
+            os << "li " << context.getMnemonic(reg) << ", " << int_bits << std::endl;
             // os << "fcvt.s.w " <<  context.getMnemonic(destReg) << ", " << context.getMnemonic(reg) << std::endl;
 
-            os << "sw " << context.getMnemonic(reg) << ", 0(sp)" << std::endl;      // store on stack temporarily
-            os << "flw " <<  context.getMnemonic(destReg) << ", 0(sp)" << std::endl;
+            context.storeInstruction(os, Specifier::_int, reg, 0);          // store on stack temporarily
+            context.loadInstruction(os, Specifier::_float, destReg, 0);
 
             context.freeReg(reg);
             break;
+        }
         default:
             std::cerr << "Number: Invalid literal data type" << std::endl;
             exit(1);
