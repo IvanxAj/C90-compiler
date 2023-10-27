@@ -10,7 +10,7 @@ Overview of what we implemented and why we made our design choices
 &nbsp;&nbsp;&nbsp;&nbsp;**[Floats](#floats)**<br>
 &nbsp;&nbsp;&nbsp;&nbsp;**[Arrays](#arrays)**<br>
 &nbsp;&nbsp;&nbsp;&nbsp;**[Pointers](#pointers)**<br>
-**[Future scope]()**<br>
+**[Future scope](#future-scope)**<br>
 
 ## [Context](../include/context.hpp)
 - Context is a struct that facilitates tracking the state for code gen. This includes managing registers, variable bindings, stack offsets and provides other utility methods

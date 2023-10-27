@@ -364,23 +364,21 @@ struct Context
         }
     }
 
-    void printVariableInfo(const std::string& func_name, const Variable& var) const {
-        std::cerr << "Variable:" << func_name << "\n";
-        std::cerr << "  Type: " << specifierToString(var.type) << "\n";
-        std::cerr << "  Offset: " << var.offset << "\n";
-        std::cerr << "  Is Pointer: " << (var.is_pointer ? "Yes" : "No") << "\n";
+    void printVariableInfo(const std::string& var_name, const Variable& var) const {
+        std::cerr << "Variable: " << var_name
+                << " | Type: " << specifierToString(var.type)
+                << " | Offset: " << var.offset
+                << " | Is Pointer: " << (var.is_pointer ? "Yes" : "No")
+                << std::endl;
     }
 
     void debugScope() const {
         std::cerr << "------ DEBUGGING SCOPES ------" << std::endl;
 
         for (size_t i = 0; i < scopes.size(); ++i) {
-            std::cerr << "Scope " << i + 1 << ":" << std::endl;
-            for (const auto& binding : scopes[i].bindings) {
-                std::cerr << "  Name: " << binding.first
-                          << ", Type: " << specifierToString(binding.second.type)
-                          << ", Offset: " << binding.second.offset
-                          << ", Pointer: " << binding.second.is_pointer << std::endl;
+            std::cerr << "Scope " << i << ":" << std::endl;
+            for (const auto& [var_name, var] : scopes[i].bindings) {
+                printVariableInfo(var_name, var);
             }
             std::cerr << std::endl;
         }
