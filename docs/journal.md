@@ -165,3 +165,28 @@
   ```
   The reason this was problematic is that different types may have different alignment requirements, and the compiler is allowed to assume that you never break the strict aliasing rules. So, it might optimise the code in a way that results in incorrect behavior when those rules are violated.
 - In C++20, `std::bit_cast` was introduced, which is a more safe and defined way to reinterpret the bits of a value as a different type, and so the union-based type punning in `Number`, was replaced with `std::bit_cast`.
+
+**29/10/23** Enums
+- Added a enum map to Scope struct (to properly handle local / global / nested enums), and appropriate methods
+- Context defines a getEnum, which searches reverse iteratively through scopes, and returns the value of the enum.
+  - Always called after isEnum, so could be made more efficient by combining with isEnum to only iterate once, but realisitically, we won't have many nested enums, so should not be very computationally expensive. Possible more efficient implementation:
+  ```C++
+  std::optional<int> findEnum(const std::string& name) const {
+    for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+        if (it->enumExists(name)) {
+            return it->getLocalEnum(name);
+        }
+    }
+    // Enum not found
+    return std::nullopt;
+  }
+  ```
+  but requires more complex handling.
+
+- For enums and structs, need to adjust the way parser handles Declaration specifiers. To support anonymous enums / structs where you have for example:
+  ```C
+  enum { RED, GREEN, BLUE } colour;
+  colour = RED;
+  ```
+  the enum is defined without a name, and a variable colour of this anonymous enum type is declared immediately afterward.
+  Declaration can now no longer just directly take in Specifier directly, and need more hierarchy.

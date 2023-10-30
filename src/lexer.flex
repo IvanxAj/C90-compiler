@@ -38,6 +38,9 @@ IS			        (u|U|l|L)*
 "continue"      { return(T_CONTINUE); }
 "break"         { return(T_BREAK); }
 "for"			      { return(T_FOR); }
+"struct"			    { return(T_STRUCT); }
+"union"			    { return(T_UNION); }
+"enum"			    { return(T_ENUM); }
 "sizeof"        { return(T_SIZEOF); }
 
 {D}+"."{D}+{FS}?        { yylval.number = std::stod(yytext); return FLOAT_LITERALS; }

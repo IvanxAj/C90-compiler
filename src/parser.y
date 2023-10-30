@@ -40,6 +40,7 @@
 // Conditional statements
 %token T_IF T_ELSE T_WHILE T_FOR T_DO T_SWITCH T_CASE T_DEFAULT
  // Stuff
+%token T_STRUCT T_UNION T_ENUM
 %token IDENTIFIER INT_LITERALS FLOAT_LITERALS
 
  /* ----------------------------------------------------------          Types           -------------------------------------------------------------- */
@@ -47,9 +48,9 @@
 %type <node>   external_declaration function_definition
 %type <node>   declaration
 
-%type <node_list> translation_unit statement_list declaration_list parameter_list argument_expression_list initializer_list
+%type <node_list> translation_unit statement_list declaration_list parameter_list argument_expression_list initializer_list enumerator_list
 
-%type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration
+%type <base_declaration>  declarator direct_declarator init_declarator parameter_declaration enum_specifier
 %type <base_statement> statement expression_statement jump_statement compound_statement selection_statement iteration_statement
 %type <base_statement> labeled_statement
 %type <base_expression> expression assignment_expression unary_expression postfix_expression primary_expression initializer
@@ -57,7 +58,7 @@
 
 %type <base_expression> conditional_expression logical_or_expression logical_and_expression inclusive_or_expression
 %type <base_expression> exclusive_or_expression relational_expression and_expression equality_expression
-%type <base_expression> constant_expression
+%type <base_expression> constant_expression enumerator
 
 %type <number> INT_LITERALS FLOAT_LITERALS
 %type <string> IDENTIFIER
@@ -87,6 +88,8 @@ declaration_list
 
 declaration
 	: declaration_specifier init_declarator ';'     { $$ = new Declaration($1, $2); }
+	| T_ENUM IDENTIFIER init_declarator ';' 		{ $$ = new Declaration(Specifier::_int, $3);}
+	| enum_specifier ';' 							{ $$ = $1;}
 	;
 
 
@@ -139,6 +142,21 @@ parameter_list
 
 parameter_declaration
 	: type_specifier declarator     { $$ = new ParamDeclaration($1, $2); }
+	;
+
+enum_specifier
+	: T_ENUM '{' enumerator_list '}' 				{ $$ = new EnumSpecifier($3);}
+	| T_ENUM IDENTIFIER '{' enumerator_list '}'		{ $$ = new EnumSpecifier($4);}
+	;
+
+enumerator_list
+	: enumerator 						{ $$ = createList($1); }
+	| enumerator_list ',' enumerator	{ $$ = appendList($1, $3); }
+	;
+
+enumerator
+	: IDENTIFIER 							{ $$ = new Enumerator(*$1);}
+	| IDENTIFIER '=' constant_expression	{ $$ = new Enumerator(*$1, $3);}
 	;
 
 initializer

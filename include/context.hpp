@@ -70,6 +70,7 @@ struct LoopLabel {
 struct Scope
 {
     std::unordered_map<std::string, Variable> bindings;     // Track variables in scope
+    std::unordered_map<std::string,int> enums;              // Track enums in scope
 
     void addLocalVar(const std::string& name, Specifier type, int offset, bool isPointer = false) {
         bindings[name] = Variable(type, offset, isPointer);
@@ -78,6 +79,19 @@ struct Scope
     Variable getLocalVar(const std::string& name) const {
         auto it = bindings.find(name);
         return it == bindings.end() ? Variable(Specifier::INVALID_TYPE, -1) : it->second;
+    }
+
+    void addLocalEnum(const std::string& name, int value) {
+        enums[name] = value;
+    }
+
+    bool enumExists(const std::string& name) const {
+        return enums.find(name) != enums.end();
+    }
+
+    int getLocalEnum(const std::string& name) const {
+        // would have already checked if enumExists in a certain scope, so should always be found
+        return enums.at(name);
     }
 
 };
@@ -221,6 +235,23 @@ struct Context
         scopes.back().addLocalVar(array_name, type, local_var_offset - var_size);
 
         local_var_offset -= total_array_size;
+    }
+
+    void addEnum(const std::string& name, int value) {
+        scopes.back().addLocalEnum(name, value);
+    }
+
+    bool isEnum(const std::string& name) const {
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+            if (it->enumExists(name)) return true;
+        }
+        return false;
+    }
+
+    int getEnumValue(const std::string& name) {
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+            if (it->enumExists(name)) return it->getLocalEnum(name);
+        }
     }
 
     /* ----------------------------------HANDLE SCOPES------------------------------------------- */
@@ -377,9 +408,19 @@ struct Context
 
         for (size_t i = 0; i < scopes.size(); ++i) {
             std::cerr << "Scope " << i << ":" << std::endl;
+
+            // Output variables
+            std::cerr << "  Variables:" << std::endl;
             for (const auto& [var_name, var] : scopes[i].bindings) {
                 printVariableInfo(var_name, var);
             }
+
+            // Output enums
+            std::cerr << "  Enums:" << std::endl;
+            for (const auto& [enum_name, enum_value] : scopes[i].enums) {
+                std::cerr << "    " << enum_name << " = " << enum_value << std::endl;
+            }
+
             std::cerr << std::endl;
         }
 

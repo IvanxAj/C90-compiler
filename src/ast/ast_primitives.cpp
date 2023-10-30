@@ -49,12 +49,16 @@ void Number::compile(std::ostream& os, Context& context, int destReg) const {
 Identifier::Identifier(const std::string& _name): name(_name) {}
 
 Specifier Identifier::getType(Context& context) const {
-    Specifier type = context.getVarType(name);
 
-    if (type == Specifier::INVALID_TYPE) {
-        std::cerr << "Invalid type" << std::endl;
+    if (context.isEnum(name)) {
+        return Specifier::_int;
     }
-    return context.getVarType(name);
+
+    Specifier type = context.getVarType(name);
+    if (type == Specifier::INVALID_TYPE) {
+        std::cerr << "Error: Identifier '" << name << "' has an invalid type." << std::endl;
+    }
+    return type;
 }
 
 const std::string& Identifier::getIdentifier() const {
@@ -63,8 +67,11 @@ const std::string& Identifier::getIdentifier() const {
 
 void Identifier::compile(std::ostream& os, Context& context, int destReg) const {
 
-    Variable var = context.getVar(name);
-
-    context.loadInstruction(os, var.type, destReg, var.offset);
-
+    if (context.isEnum(name)) {
+        os << "li " << context.getMnemonic(destReg) << ", " << context.getEnumValue(name) << std::endl;
+        return;
+    } else {
+        Variable var = context.getVar(name);
+        context.loadInstruction(os, var.type, destReg, var.offset);
+    }
 }

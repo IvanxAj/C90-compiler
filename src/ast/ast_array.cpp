@@ -108,7 +108,7 @@ void ArrayInitialiser::compile(std::ostream& os, Context& context, int destReg) 
         int element_offset = var_size * index;
 
         // store the initializer value into the array element
-        context.storeInstruction(os, array_type, init_reg, element_offset, destReg);
+        context.storeInstruction(os, array_type, init_reg, -element_offset, destReg);
 
         context.freeReg(init_reg);
         index++;

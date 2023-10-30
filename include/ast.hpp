@@ -25,6 +25,7 @@
 #include "ast/ast_for.hpp"
 #include "ast/ast_array.hpp"
 #include "ast/ast_pointer_declarator.hpp"
+#include "ast/ast_enum.hpp"
 
 #include "context.hpp"
 
