@@ -11,10 +11,19 @@ ProgramRoot::~ProgramRoot() {
 }
 
 void ProgramRoot::compile(std::ostream& os, Context& context, int destReg) const {
-    // handle global scope at this level
+
     os << ".text" << std::endl;
     for (auto node: *list) {
         node->compile(os, context, destReg);
+    }
+
+    // heap memory
+    os << ".data" << std::endl;
+    for (const auto& pair : context.heapMemory) {
+        for (const auto& property : pair.second.properties) {
+            os << property << std::endl;
+        }
+
     }
 }
 

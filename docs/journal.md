@@ -169,7 +169,7 @@
 **29/10/23** Enums
 - Added a enum map to Scope struct (to properly handle local / global / nested enums), and appropriate methods
 - Context defines a getEnum, which searches reverse iteratively through scopes, and returns the value of the enum.
-  - Always called after isEnum, so could be made more efficient by combining with isEnum to only iterate once, but realisitically, we won't have many nested enums, so should not be very computationally expensive. Possible more efficient implementation:
+  - Always called after isEnum, so could be made more efficient by combining with isEnum to only iterate once, but realistically, we won't have many nested enums, so should not be very computationally expensive. Possible more efficient implementation:
   ```C++
   std::optional<int> findEnum(const std::string& name) const {
     for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
@@ -190,3 +190,59 @@
   ```
   the enum is defined without a name, and a variable colour of this anonymous enum type is declared immediately afterward.
   Declaration can now no longer just directly take in Specifier directly, and need more hierarchy.
+
+**31/10/23** Globals implementation
+
+Here is how we should codegen various declarations:
+
+- Global variable `int x;`:
+  ```assembly
+  .globl x
+  .data
+  .size x, 4
+  x:
+    .zero 4
+  ```
+
+- Global variable initialised `int x = 5;`:
+  ```assembly
+  .globl x
+  .data
+  .size x, 4
+  x:
+    .word 5
+  ```
+
+- Global array `int a[5];`:
+  ```assembly
+  .globl a
+  .data
+  .size a, 20
+  a:
+    .zero 20
+  ```
+
+- Global array initialised `int a[5] = {1,2,3};`:
+  ```assembly
+  .globl a
+  .data
+  .size a, 20
+  a:
+    .word 1
+    .word 2
+    .word 3
+    .zero 8
+  ```
+
+- For reference, global string `char *s = "hello";`:
+  ```assembly
+  .globl s
+  .LC0:
+    .string "hello"
+  .size s, 4
+  s:
+    .word .LC0
+  ```
+
+- Arrays can consist of int, float, double data types too, so need to take that into account
+- The bit representations of doubles and floats should be moved into a function somewhere, as we need to do it both in `Number` and when initialising globals directly using in `InitDeclarator`

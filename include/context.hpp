@@ -32,11 +32,27 @@ enum class Specifier
 {
     _int,
     _char,
-    _void,
     _float,
     _double,
+    _void,
     _unsigned,
     INVALID_TYPE = -1,
+};
+
+enum class HeapObjectTypes
+{
+    Basic,
+    Array,
+    String,
+    Temp
+};
+
+struct HeapObject {
+    HeapObjectTypes object_type;
+    std::vector<std::string> properties;
+
+    HeapObject(HeapObjectTypes _type, const std::vector<std::string>& _properties)
+        : object_type(_type), properties(_properties) { }
 };
 
 const std::unordered_map<Specifier, int> typeSizes = {
@@ -129,6 +145,7 @@ struct Context
     std::vector<Scope> scopes;
     std::vector<LoopLabel> loopLabels;
     std::unordered_map<std::string, Specifier> functionReturnTypes;
+    std::unordered_map<std::string, HeapObject> heapMemory;
 
     // Add a global scope on constructor
     Context() {
@@ -178,6 +195,33 @@ struct Context
         return regNames[i];
     }
 
+    /* ----------------------------------HANDLE SCOPES------------------------------------------- */
+
+    // Create a new scope by adding a new stack frame - defaulted
+    void newScope() {
+        scopes.emplace_back();
+    }
+
+    // Delete the last scope by removing the last stack frame
+    void popScope() {
+        if (!scopes.empty()) {
+            scopes.pop_back();
+        }
+    }
+
+    void resetOffsets() {
+        local_var_offset = -STACK_ALIGNMENT;
+        param_offset = -2 * STACK_ALIGNMENT;
+        // param_offset_excess = 0;
+    }
+
+    void saveFuncReturnType(const std::string& func_name, Specifier return_type) {
+        functionReturnTypes[func_name] = return_type;
+        current_func_type = return_type;
+    }
+
+    /* ----------------------------------HANDLE HEAP------------------------------------------- */
+
     /* ----------------------------------HANDLE VARS------------------------------------------- */
 
     Variable getVar(const std::string& name) const {
@@ -203,13 +247,24 @@ struct Context
         return var.is_pointer;
     }
 
-    int addVar(const std::string& name, Specifier type, bool is_pointer = false) {
+    void addVar(const std::string& name, Specifier type, bool is_pointer = false) {
         int var_size = typeSizes.at(type);
         // type of a pointer, is the type of variable it is pointing to - need to manually set 4
         if (is_pointer == true) var_size = 4;
-        local_var_offset -= var_size;
-        scopes.back().addLocalVar(name, type, local_var_offset, is_pointer);
-        return local_var_offset;
+
+        if (scopes.size() == 1) {
+            // global variable
+            scopes.back().addLocalVar(name, type, 0, is_pointer);
+            // add to heap memory - empty properties vector
+            // TODO: switch to using a dedicated function that abstracts this away
+            heapMemory.insert({name, HeapObject(HeapObjectTypes::Basic, {})});
+            return;
+        } else {
+            // local variable
+            local_var_offset -= var_size;
+            scopes.back().addLocalVar(name, type, local_var_offset, is_pointer);
+            return;
+        }
     }
 
     int addParam(const std::string& name, Specifier type, int param_index, bool is_pointer = false) {
@@ -232,9 +287,15 @@ struct Context
         int var_size = typeSizes.at(type);
         int total_array_size = array_size * var_size;
 
-        scopes.back().addLocalVar(array_name, type, local_var_offset - var_size);
-
-        local_var_offset -= total_array_size;
+        if (scopes.size() == 1) {
+            // global array
+            scopes.back().addLocalVar(array_name, type, 0);
+            return;
+        } else {
+            // local array
+            scopes.back().addLocalVar(array_name, type, local_var_offset - var_size);
+            local_var_offset -= total_array_size;
+        }
     }
 
     void addEnum(const std::string& name, int value) {
@@ -252,31 +313,8 @@ struct Context
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
             if (it->enumExists(name)) return it->getLocalEnum(name);
         }
-    }
-
-    /* ----------------------------------HANDLE SCOPES------------------------------------------- */
-
-    // Create a new scope by adding a new stack frame - defaulted
-    void newScope() {
-        scopes.emplace_back();
-    }
-
-    // Delete the last scope by removing the last stack frame
-    void popScope() {
-        if (!scopes.empty()) {
-            scopes.pop_back();
-        }
-    }
-
-    void resetOffsets() {
-        local_var_offset = -STACK_ALIGNMENT;
-        param_offset = -2 * STACK_ALIGNMENT;
-        // param_offset_excess = 0;
-    }
-
-    void saveFuncReturnType(const std::string& func_name, Specifier return_type) {
-        functionReturnTypes[func_name] = return_type;
-        current_func_type = return_type;
+        // should always have returned a value - only run after isEnum
+        return -1;
     }
 
     /* ----------------------------------HANDLE LOOPS------------------------------------------- */
@@ -360,7 +398,7 @@ struct Context
     }
 
     // sw destReg, offset(baseReg) for input type
-     void storeInstruction(std::ostream& os, Specifier type, int dest_reg, int offset, int address_reg = 8 ) const {
+    void storeInstruction(std::ostream& os, Specifier type, int dest_reg, int offset, int address_reg = 8 ) const {
         // address_reg defaults to s0
         switch(type) {
             case(Specifier::_int):
@@ -405,6 +443,17 @@ struct Context
 
     void debugScope() const {
         std::cerr << "------ DEBUGGING SCOPES ------" << std::endl;
+
+        // for (const auto& pair : heapMemory) {
+        //     const auto& identifier = pair.first;
+        //     const auto& object = pair.second;
+
+        //     std::cerr << identifier << ":" << std::endl;
+        //     for (const auto& property : object.properties) {
+        //         std::cerr << "    " << property << std::endl;
+        //     }
+        //     std::cerr << std::endl;
+        // }
 
         for (size_t i = 0; i < scopes.size(); ++i) {
             std::cerr << "Scope " << i << ":" << std::endl;

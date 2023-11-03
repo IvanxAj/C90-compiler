@@ -37,25 +37,38 @@ void InitDeclarator::compile(std::ostream& os, Context& context, int destReg) co
 
         context.freeReg(array_address_reg);
 
-    } else {
-        // variable initialisation
+        return;
 
-        std::string var_name = declarator->getIdentifier();
-        Specifier type = context.getVarType(var_name);
-
-        // Pointers themselves use standard int regs + operations
-        if(isPointer()) type = Specifier::_int;
-
-        int init_reg = context.allocateReg(type);
-        context.useReg(init_reg);
-        // evaluate initialiser expression e.g. (3+4) = 7
-        initialiser->compile(os, context, init_reg);
-
-        int var_offset = context.getVarOffset(var_name);
-
-        context.storeInstruction(os, type, init_reg, var_offset);
-
-        context.freeReg(init_reg);
     }
+
+    // local + global variable initialisation
+    std::string var_name = declarator->getIdentifier();
+    Variable var = context.getVar(var_name);
+
+    // Pointers themselves use standard int regs + operations
+    if(isPointer()) var.type = Specifier::_int;
+
+    // TODO: Check if global variable - store initialiser
+    if (var.offset == 0) {
+        int data = initialiser->getValue();
+        // only for int right now
+        auto& properties = context.heapMemory.at(var_name).properties;
+        properties.push_back(".globl " + var_name);
+        std::string size_field = ".size " + var_name + ", " + std::to_string(typeSizes.at(var.type));
+        properties.push_back(size_field);
+        properties.push_back(var_name + ":");
+        properties.push_back(".word " + std::to_string(data));
+
+        return;
+    }
+
+    int init_reg = context.allocateReg(var.type);
+    context.useReg(init_reg);
+    // evaluate initialiser expression e.g. (3+4) = 7
+    initialiser->compile(os, context, init_reg);
+
+    context.storeInstruction(os, var.type, init_reg, var.offset);
+
+    context.freeReg(init_reg);
 
 }
