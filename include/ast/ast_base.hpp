@@ -24,7 +24,7 @@ public:
     virtual bool isDerefPointer() const;
     virtual bool isFuncCall() const;
 
-    virtual int getValue() const;
+    virtual double getValue() const;
     virtual const std::string& getIdentifier() const;
     virtual Specifier getType(Context& context) const;
 };

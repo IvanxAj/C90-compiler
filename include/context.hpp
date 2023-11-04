@@ -7,6 +7,7 @@
 #include <cmath>
 #include <iostream>
 #include <ostream>
+#include <bit>
 
 constexpr int STACK_ALIGNMENT = 16;
 
@@ -50,6 +51,9 @@ enum class HeapObjectTypes
 struct HeapObject {
     HeapObjectTypes object_type;
     std::vector<std::string> properties;
+
+    // default
+    HeapObject() : object_type(HeapObjectTypes::Basic), properties({}) { }
 
     HeapObject(HeapObjectTypes _type, const std::vector<std::string>& _properties)
         : object_type(_type), properties(_properties) { }
@@ -222,6 +226,65 @@ struct Context
 
     /* ----------------------------------HANDLE HEAP------------------------------------------- */
 
+    void addDataBasedOnSpecifier(std::vector<std::string>& properties, Specifier type, double value) {
+        switch (type) {
+            case Specifier::_int:
+                properties.push_back(".word " + std::to_string(static_cast<int>(value)));
+                break;
+            case Specifier::_float: {
+                uint32_t int_bits = std::bit_cast<uint32_t>(static_cast<float>(value));
+                properties.push_back(".word " + std::to_string(int_bits));
+                break;
+            }
+            case Specifier::_double: {
+                uint64_t bits = std::bit_cast<uint64_t>(static_cast<double>(value));
+                int32_t low = static_cast<int32_t>(bits);
+                int32_t high = static_cast<int32_t>(bits >> 32);
+                properties.push_back(".word " + std::to_string(low));
+                properties.push_back(".word " + std::to_string(high));
+                break;
+            }
+            case Specifier::_char:
+                properties.push_back(".byte " + std::to_string(static_cast<int>(value)));
+                break;
+            default:
+                // Handle other specifiers or throw an error
+                break;
+        }
+    }
+
+    void addHeapObject(HeapObjectTypes type, const std::string& identifier, Specifier spec, int size, const std::vector<double>& data) {
+        std::vector<std::string> properties;
+
+        // Basic and Array types have some common properties
+        if (type == HeapObjectTypes::Basic || type == HeapObjectTypes::Array) {
+            properties.push_back(".globl " + identifier);
+            properties.push_back(".size " + identifier + ", " + std::to_string(size));
+            properties.push_back(identifier + ":");
+        }
+
+        if (type == HeapObjectTypes::Basic) {
+            addDataBasedOnSpecifier(properties, spec, data[0]);
+
+        } else if (type == HeapObjectTypes::Array) {
+            // TODO: think through arrays fully
+            for (size_t i = 0; i < data.size(); ++i) {
+                addDataBasedOnSpecifier(properties, spec, data[i]);
+            }
+            int remainingSize = size - typeSizes.at(spec) * data.size();
+            if (remainingSize > 0) {
+                properties.push_back(".zero " + std::to_string(remainingSize));
+            }
+
+        } else if (type == HeapObjectTypes::Temp) {
+            properties.push_back(identifier + ":");
+            addDataBasedOnSpecifier(properties, spec, data[0]);
+        }
+
+        // Add the object to heapMemory
+        heapMemory[identifier] = HeapObject(type, properties);
+    }
+
     /* ----------------------------------HANDLE VARS------------------------------------------- */
 
     Variable getVar(const std::string& name) const {
@@ -255,9 +318,6 @@ struct Context
         if (scopes.size() == 1) {
             // global variable
             scopes.back().addLocalVar(name, type, 0, is_pointer);
-            // add to heap memory - empty properties vector
-            // TODO: switch to using a dedicated function that abstracts this away
-            heapMemory.insert({name, HeapObject(HeapObjectTypes::Basic, {})});
             return;
         } else {
             // local variable
@@ -357,9 +417,6 @@ struct Context
 
     int calculateStackSize(int totalLocalVarBytes, int totalParamBytes) {
         int stack_size = STACK_ALIGNMENT;  // Minimum stack size
-
-        // allocate 4 bytes for floats - helps guarantee floats don't overwrite vars
-        totalParamBytes += 4;
 
         // Calculate space needed for local variables
         if (totalLocalVarBytes > 0) {

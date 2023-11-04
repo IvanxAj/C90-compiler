@@ -43,7 +43,8 @@ IS			        (u|U|l|L)*
 "enum"			    { return(T_ENUM); }
 "sizeof"        { return(T_SIZEOF); }
 
-{D}+"."{D}+{FS}?        { yylval.number = std::stod(yytext); return FLOAT_LITERALS; }
+{D}+"."{D}+{FS}         { yylval.number = std::stod(yytext); return FLOAT_LITERALS; }
+{D}+"."{D}+             { yylval.number = std::stod(yytext); return DOUBLE_LITERALS; }
 {D}+                    { yylval.number = std::stod(yytext); return INT_LITERALS; }
 {L}({L}|{D})*           { yylval.string = new std::string(yytext); return IDENTIFIER; }
 

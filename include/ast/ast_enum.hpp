@@ -25,7 +25,7 @@ public:
     Enumerator(const std::string& _identifier, BaseExpression* _expression = nullptr);
     ~Enumerator();
 
-    int getValue() const override;
+    double getValue() const override;
     const std::string& getIdentifier() const override;
 
     void compile(std::ostream& os, Context& context, int destReg) const override;

@@ -2,7 +2,6 @@
 
 #include "ast_node.hpp"
 #include "ast_base.hpp"
-#include <bit>
 
 
 class Number
@@ -12,7 +11,7 @@ public:
 
     Number(double _value, Specifier _type);
 
-    int getValue() const override;
+    double getValue() const override;
     Specifier getType(Context& context) const override;
     void compile(std::ostream& os, Context& context, int destReg) const override;
 

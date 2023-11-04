@@ -40,7 +40,7 @@ bool BaseExpression::isFuncCall() const {
     return false;
 }
 
-int BaseExpression::getValue() const {
+double BaseExpression::getValue() const {
     return -1;
 }
 

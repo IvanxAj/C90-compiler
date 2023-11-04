@@ -32,7 +32,7 @@ Enumerator::~Enumerator() {
     delete expression;
 }
 
-int Enumerator::getValue() const {
+double Enumerator::getValue() const {
     // if no expression, need to return previous value + 1 (has to be handled by EnumSpecifier)
     if(!expression) return INT_MIN;
 

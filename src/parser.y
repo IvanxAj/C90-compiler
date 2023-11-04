@@ -41,7 +41,7 @@
 %token T_IF T_ELSE T_WHILE T_FOR T_DO T_SWITCH T_CASE T_DEFAULT
  // Stuff
 %token T_STRUCT T_UNION T_ENUM
-%token IDENTIFIER INT_LITERALS FLOAT_LITERALS
+%token IDENTIFIER INT_LITERALS FLOAT_LITERALS DOUBLE_LITERALS
 
  /* ----------------------------------------------------------          Types           -------------------------------------------------------------- */
 
@@ -60,7 +60,7 @@
 %type <base_expression> exclusive_or_expression relational_expression and_expression equality_expression
 %type <base_expression> constant_expression enumerator
 
-%type <number> INT_LITERALS FLOAT_LITERALS
+%type <number> INT_LITERALS FLOAT_LITERALS DOUBLE_LITERALS
 %type <string> IDENTIFIER
 %type <type> declaration_specifier type_specifier
 
@@ -337,6 +337,7 @@ postfix_expression
 primary_expression
     : IDENTIFIER          { $$ = new Identifier(*$1); delete $1; }
     | INT_LITERALS        { $$ = new Number($1, Specifier::_int); }
+	| DOUBLE_LITERALS	  { $$ = new Number($1, Specifier::_double); }
     | FLOAT_LITERALS      { $$ = new Number($1, Specifier::_float); }
     | '(' expression ')'  { $$ = $2; }
 	;

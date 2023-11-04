@@ -48,16 +48,16 @@ void InitDeclarator::compile(std::ostream& os, Context& context, int destReg) co
     // Pointers themselves use standard int regs + operations
     if(isPointer()) var.type = Specifier::_int;
 
-    // TODO: Check if global variable - store initialiser
     if (var.offset == 0) {
-        int data = initialiser->getValue();
-        // only for int right now
-        auto& properties = context.heapMemory.at(var_name).properties;
-        properties.push_back(".globl " + var_name);
-        std::string size_field = ".size " + var_name + ", " + std::to_string(typeSizes.at(var.type));
-        properties.push_back(size_field);
-        properties.push_back(var_name + ":");
-        properties.push_back(".word " + std::to_string(data));
+        double data = initialiser->getValue();
+
+        context.addHeapObject(
+            HeapObjectTypes::Basic,
+            var_name,
+            var.type,
+            typeSizes.at(var.type),
+            {data}
+        );
 
         return;
     }

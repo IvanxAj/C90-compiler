@@ -10,7 +10,7 @@ ArrayDeclarator::~ArrayDeclarator() {
 }
 
 int ArrayDeclarator::getArraySize() const {
-    int size = array_size->getValue();
+    int size = static_cast<int>(array_size->getValue());
     std::cerr << "Array declarator returned size: " << size << std::endl;
     return size;
 }

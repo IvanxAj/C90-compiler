@@ -4,7 +4,7 @@
 Number::Number(double _value, Specifier _type)
     : value(_value), type(_type) {}
 
-int Number::getValue() const {
+double Number::getValue() const {
     return value;
 }
 
@@ -14,32 +14,28 @@ Specifier Number::getType(Context& context) const {
 
 void Number::compile(std::ostream& os, Context& context, int destReg) const {
 
-    int reg = -1;
-
     switch(type) {
         case Specifier::_int:
             os << "li "<< context.getMnemonic(destReg) << "," << value << std::endl;
             break;
         case Specifier::_float: {
-            // static_cast to float used for a more explicit and safer type conversion
-            uint32_t int_bits = std::bit_cast<uint32_t>(static_cast<float>(value));
+            std::string label = context.makeLabel(".flt");
+            context.addHeapObject(HeapObjectTypes::Temp, label, Specifier::_float, typeSizes.at(Specifier::_float), {value});
 
-            reg = context.allocateReg(Specifier::_int);
-            os << "li " << context.getMnemonic(reg) << ", " << int_bits << std::endl;
-            // os << "fcvt.s.w " <<  context.getMnemonic(destReg) << ", " << context.getMnemonic(reg) << std::endl;
-
-            context.storeInstruction(os, Specifier::_int, reg, 0);          // store on stack temporarily
-            context.loadInstruction(os, Specifier::_float, destReg, 0);
-
-            context.freeReg(reg);
+            int temp_reg = context.allocateReg(Specifier::_int);
+            os << "lui " << context.getMnemonic(temp_reg) << ", %hi(" << label << ")" << std::endl;
+            os << "flw " << context.getMnemonic(destReg) << ", %lo(" << label << ")(" << context.getMnemonic(temp_reg) << ")" << std::endl;
+            context.freeReg(temp_reg);
             break;
         }
         case Specifier::_double: {
-            uint64_t bits = std::bit_cast<uint64_t>(value);
-            // Split the 64-bit value into two signed 32-bit integers
-            int32_t lower = static_cast<int32_t>(bits);
-            int32_t upper = static_cast<int32_t>(bits >> 32);
-            //TODO: add to heap memory + load into register
+            std::string label = context.makeLabel(".dbl");
+            context.addHeapObject(HeapObjectTypes::Temp, label, Specifier::_double, typeSizes.at(Specifier::_double), {value});
+
+            int temp_reg = context.allocateReg(Specifier::_int);
+            os << "lui " << context.getMnemonic(temp_reg) << ", %hi(" << label << ")" << std::endl;
+            os << "fld " << context.getMnemonic(destReg) << ", %lo(" << label << ")(" << context.getMnemonic(temp_reg) << ")" << std::endl;
+            context.freeReg(temp_reg);
             break;
         }
         default:
@@ -91,6 +87,9 @@ void Identifier::compile(std::ostream& os, Context& context, int destReg) const 
                 break;
             case Specifier::_float:
                 os << "flw " << context.getMnemonic(destReg) << ", %lo(" << name << ")(" << context.getMnemonic(temp_reg) << ")" << std::endl;
+                break;
+            case Specifier::_double:
+                os << "fld " << context.getMnemonic(destReg) << ", %lo(" << name << ")(" << context.getMnemonic(temp_reg) << ")" << std::endl;
                 break;
             default:
                 std::cerr << "Identifier: Invalid type for global variable" << std::endl;
